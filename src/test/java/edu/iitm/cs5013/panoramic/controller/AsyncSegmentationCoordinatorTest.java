@@ -8,9 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +35,7 @@ class AsyncSegmentationCoordinatorTest {
         SegmentationTool tool1 = new DeterministicTestAdapter("mock-1", "Mock 1", false);
         SegmentationTool tool2 = new DeterministicTestAdapter("mock-2", "Mock 2", false);
 
-        List<String> events = new ArrayList<>();
+        List<String> events = new CopyOnWriteArrayList<>();
         ToolExecutionListener listener = new ToolExecutionListener() {
             @Override
             public void onToolStarted(String toolId) {
