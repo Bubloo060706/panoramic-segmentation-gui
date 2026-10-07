@@ -25,3 +25,4 @@ models/checkpoints/
 *.onnx
 *.pt
 *.bin
+maven_proxy.py

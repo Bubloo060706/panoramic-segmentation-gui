@@ -4,10 +4,10 @@
                       https://maven.apache.org/xsd/settings-1.0.0.xsd">
   <mirrors>
     <mirror>
-      <id>repo1-central</id>
-      <name>Maven Central via repo1.maven.org</name>
-      <url>https://repo1.maven.org/maven2</url>
-      <mirrorOf>central</mirrorOf>
+      <id>local-proxy</id>
+      <name>Local Fast Maven Proxy</name>
+      <url>http://127.0.0.1:8888/maven2</url>
+      <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
 </settings>
