@@ -1,0 +1,27 @@
+# Target build directory
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project/
+.classpath/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+scratch/
+temp/
+output/
+
+# Large model checkpoints / weights
+models/checkpoints/
+*.pth
+*.onnx
+*.pt
+*.bin
