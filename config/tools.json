@@ -1,0 +1,63 @@
+[
+  {
+    "id": "pano-seg-py",
+    "name": "Python Equirectangular Segmenter",
+    "description": "Real external Python model runner with horizon & boundary wrap-around priors",
+    "executionType": "PROCESS",
+    "commandTemplate": [
+      "python",
+      "scripts/panoramic_segmenter.py",
+      "--input",
+      "{IMAGE_PATH}",
+      "--output",
+      "{OUTPUT_PATH}"
+    ],
+    "workingDirectory": ".",
+    "timeoutSeconds": 60,
+    "enabled": true,
+    "parameters": {
+      "model": "EquirectangularIndoorNet-v1",
+      "resolution": "800x400"
+    },
+    "supportedClasses": [
+      { "id": 0, "name": "Ceiling", "red": 70, "green": 130, "blue": 180 },
+      { "id": 1, "name": "Wall", "red": 245, "green": 222, "blue": 179 },
+      { "id": 2, "name": "Floor", "red": 139, "green": 69, "blue": 19 },
+      { "id": 3, "name": "Window", "red": 0, "green": 206, "blue": 209 },
+      { "id": 4, "name": "Door", "red": 255, "green": 140, "blue": 0 },
+      { "id": 5, "name": "Object", "red": 186, "green": 85, "blue": 211 }
+    ]
+  },
+  {
+    "id": "deterministic-mock",
+    "name": "Deterministic Test Segmenter",
+    "description": "Deterministic mock adapter for automated regression tests and GUI simulation",
+    "executionType": "MOCK",
+    "commandTemplate": [],
+    "workingDirectory": ".",
+    "timeoutSeconds": 10,
+    "enabled": true,
+    "parameters": {
+      "mock": true
+    },
+    "supportedClasses": [
+      { "id": 0, "name": "Ceiling", "red": 120, "green": 180, "blue": 240 },
+      { "id": 1, "name": "Wall", "red": 220, "green": 190, "blue": 140 },
+      { "id": 2, "name": "Floor", "red": 100, "green": 100, "blue": 100 },
+      { "id": 3, "name": "Window", "red": 60, "green": 220, "blue": 180 },
+      { "id": 4, "name": "WrapAroundObject", "red": 240, "green": 50, "blue": 50 }
+    ]
+  },
+  {
+    "id": "remote-panoseg-api",
+    "name": "Remote Panoramic Inference API",
+    "description": "HTTP inference service adapter for server-hosted segmentation models",
+    "executionType": "HTTP",
+    "commandTemplate": [],
+    "endpointUrl": "http://localhost:8080/api/v1/segment",
+    "timeoutSeconds": 60,
+    "enabled": false,
+    "parameters": {},
+    "supportedClasses": []
+  }
+]
