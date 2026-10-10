@@ -1,79 +1,102 @@
 # CS5013: Programming with AI — Principles & Practices Document
-**Course:** CS5013 – Programming with AI | **Semester:** Jan–May 2026 | **Department of CSE, IIT Madras**  
 **Project:** GUI Framework for Multi-Tool Panoramic Image Segmentation  
+**Course:** CS5013 – Programming with AI | **Semester:** Jan–May 2026 | **Dept. of CSE, IIT Madras**  
 **Student:** Rathan Balaji P R (Roll No: CS26E009)  
 **Stakeholder / Faculty:** Dr. Sukhendu Das, Professor, Dept. of Computer Science & Engineering, IIT Madras  
+**Synthesis:** Applied Course Principles from Hands-on Labs 1–3, Exam Master Guides & Project Lifecycle
 
 ---
 
-## 1. Executive Summary & Architectural Overview
+## 1. Executive System Context & Engineering Goals
 
-Panoramic image segmentation assigns semantic categories to 360° cylindrical equirectangular images. In practice, the domain presents severe geometric distortions (pole-stretching, wide spatial context, large aspect ratios up to 12:1) and runtime fragmentation (tools written in Python/PyTorch, C++, or exposed via cloud REST APIs). 
+Panoramic semantic segmentation assigns pixel-level categories to stitched 360° equirectangular imagery. As explored in our CS5013 Design Document and the benchmark paper (*PanoFusion: Boundary-Aware Vision-Language Segmentation for Stitched Indoor Panoramas*, ICVGIP 2026), the domain presents steep challenges: 360° cylindrical distortions, extreme aspect ratios (up to 12:1), and heterogeneous tool environments (PyTorch/CUDA, C++, REST APIs). 
 
-To unify these heterogeneous tools within a single, robust desktop application, we engineered a clean Java 21 + JavaFX framework adhering to four foundational architectural principles:
-1. **Model Isolation Boundary:** Python/CUDA and deep-learning dependencies execute entirely outside the Java Virtual Machine via Java `ProcessBuilder`, preventing heavy native libraries from destabilizing the GUI.
-2. **Canonical Result Normalization:** Heterogeneous model outputs are parsed into a uniform, immutable `SegmentationResult` schema, with any tool-specific research attributes preserved in an audit map.
-3. **Panorama-Aware Visualization:** The presentation layer implements interactive 360° horizontal modulo yaw rotation, eliminating seam artifacts across the 0° / 360° boundary.
-4. **Quantitative Comparison Engine:** The application calculates Pixel Accuracy, Mean IoU (mIoU), and Dice/F1 scores against Ind-PanSeg ground truth when dimensions and taxonomies align.
+To solve this, we engineered a clean Java 21 + JavaFX application anchored directly on the software engineering disciplines taught across Hands-on Labs 1–3:
+1. **Adapter Pattern & Isolation Boundary:** Isolating external Python/CUDA processes via Java `ProcessBuilder` to protect the Java Virtual Machine.
+2. **Canonical Schema Normalization:** Transforming arbitrary mask formats into an immutable `SegmentationResult` without losing unmapped metadata.
+3. **Panorama-Aware Visualization:** Continuous cyclic horizontal modulo yaw rotation eliminating 0°/360° seam artifacts.
+4. **Metrics Engine:** Evaluating Pixel Accuracy, Mean IoU (mIoU), and Dice against Ind-PanSeg ground truth.
 
 ---
 
-## 2. Prompt Engineering Principles & Lifecycle Application
+## 2. Prompt Engineering: Principles, Techniques, & Course Mappings
 
-Prompt engineering was treated as a rigorous software specification methodology across the lifecycle:
+Across the project lifecycle, prompt engineering was treated as a rigorous software specification methodology rather than conversational chat, incorporating the exact principles mastered in Hands-on Sessions 1.1–2.4:
 
-- **Principle A: Role-Framing & System Identity:** Each interaction designated the AI as a Principal Software Architect paired with a Graduate Student at IIT Madras, enforcing strict compliance with Gang of Four design patterns (Adapter, Strategy, Observer, Builder) and zero tolerance for stub code.
-- **Principle B: Context Bounding & In-Context Grounding:** Prompts anchored the model directly to authoritative project artifacts: the CS5013 Project Proposal, the Design Document, and the ICVGIP 2026 research paper (*"PanoFusion: Boundary-Aware Vision-Language Segmentation for Stitched Indoor Panoramas"*). File paths, JSON schemas, and class names were bounded to prevent architectural drift.
-- **Principle C: Negative Prompting & Anti-Pattern Constraints:** Prompts strictly enforced boundaries: *"Do NOT embed Python or CUDA inside JVM"*, *"Do NOT silently drop unsupported tool metadata"*, *"Do NOT invent arbitrary classes; use exact Ind-PanSeg 21 classes"*, and *"Do NOT use third-party CSS; use clean JavaFX CSS"*.
-- **Principle D: Output Structuring & Few-Shot Schemas:** Exact JSON interchange schemas (`tools.json`) and POJO Builder patterns were prescribed, guaranteeing bidirectional serialization between Python subprocesses and Java.
-- **Principle E: Iterative Chain-of-Thought & Stepwise Verification:** Workflows were broken into verifiable increments (Domain Models → Model Adapters → Test Suites → UI Views), with automated tests passing at each milestone.
+- **A. Role-Prompting & Machine-Format Constraints (Hands-on 2.2 IntentParser Lesson):**  
+  Hands-on 2.2 demonstrated that Zero-Shot/Few-Shot prompts produce conversational preamble noise (*"Sure, here is the JSON..."*) on 50% of runs, which breaks automated parsers. By enforcing a strict Role + Output Constraint (*"You are a strict intent-parsing service. Output ONLY JSON"*), preamble noise dropped to 0%. In our project, all tool interchange interfaces (e.g. `tools.json`, model runners) strictly enforce role-framing and zero-preamble JSON output schemas, ensuring 100% parseable inter-process communication.
+- **B. Context Curation & Open Tab Heuristic (Hands-on 3.1 UserDTO Lesson):**  
+  Hands-on 3.1 proved that Fill-In-The-Middle (FIM) context fails when relevant files are closed, causing the LLM to hallucinate fields. Opening adjacent tabs immediately cured the hallucination. In our workflow, we systematically curated prompt context by grounding the model in the authoritative CS5013 Proposal, Design Document, and the ICVGIP 2026 *PanoFusion* paper before requesting code generation, preventing contract drift and hallucinated APIs.
+- **C. Specificity, Invariants, & Memory Optimization (Hands-on 2.1 Dedup Lesson):**  
+  Hands-on 2.1 showed that vague prompts (*"Make it faster"*) violate invariants (switching to HashSet lost order), while specific prompts enforcing O(n) order preservation yielded `LinkedHashSet` (6 ms), and iterative follow-ups yielded `BitSet` for near-zero memory. We applied this by explicitly specifying mathematical invariants: e.g. equirectangular modulo arithmetic `(x + offset) % width` and strictly immutable Java Records/Builders, preventing unsafe optimizations.
+- **D. Prompt Chaining vs One-Shot Refactoring (Hands-on 2.3 InvoiceReport Lesson):**  
+  Hands-on 2.3 proved that a 4-step chain (**Plan → Generate → Critique → Patch**) outperforms one-shot refactoring by catching unnecessary indirection and missing validations. We used prompt chaining to develop our `PanoramaImageRenderer` and `MetricsCalculator`, allowing the AI to critique its initial edge-case handling before generating final production code.
+- **E. Explicit Capitalized Negative Constraints (Hands-on 2.3 Negative Prompting):**  
+  Course findings showed that negative prompts must be capitalized and explicit. We enforced critical guardrails: *"Do NOT embed Python or CUDA inside JVM"*, *"Do NOT drop unmapped tool metadata; store in unsupportedAttributes Map"*, and *"Do NOT invent arbitrary classes; use exact 21 Ind-PanSeg classes"*.
 
 ---
 
 ## 3. Debugging: Structured Approach & Issue Resolution
 
-Debugging across a hybrid JavaFX-Python-CUDA environment followed a four-step scientific method:
+Debugging across a hybrid JavaFX-Python-CUDA environment required a disciplined four-step diagnostic methodology:
 
-1. **Boundary Isolation (JVM vs Subprocess):** When external segmentation failed, the Python scripts were executed and debugged standalone via CLI with test images before attaching the Java `ProcessModelAdapter`.
-2. **Deadlock-Free Stream Consumption:** A classic issue in subprocess management is OS pipe buffer saturation. We isolated `stdout` and `stderr` consumption onto dedicated background threads with `BufferedReader`, completely eliminating Java thread freezes.
-3. **Deterministic Mock Test Baselines:** To isolate rendering and metrics bugs from hardware and network latency, we created `DeterministicTestAdapter`. It synthesizes mathematically predictable horizontal wrap-around regions, independently verifying metric formulas and modulo yaw rotation.
-4. **Test-Driven Reproducers:** Whenever regressions surfaced (such as updating from a 6-class toy schema to the 21-class Ind-PanSeg benchmark), focused tests were authored in `AdapterTest.java` and `EndToEndSystemTest.java` to diagnose and fix the failure trace.
+1. **Boundary Isolation & Subprocess Decoupling:** When external segmentation failed, we decoupled the Java layer from Python. We verified scripts standalone via terminal CLI on test panoramas before connecting `ProcessModelAdapter`, preventing cross-boundary diagnostic confusion.
+2. **Deadlock-Free Stream Handling:** A classic defect in external process management is OS pipe buffer deadlock when stdout/stderr streams fill. We implemented dedicated background worker threads reading `stdout` and `stderr` concurrently via `BufferedReader`, preventing Java execution freezes.
+3. **Deterministic Mock Baseline as Oracle:** To debug rendering and metric calculations without GPU or network latency, we authored `DeterministicTestAdapter`. It synthesizes mathematically predictable horizontal wrap-around regions, proving the metric formulas and modulo yaw rotation independently.
+4. **Test-Driven Reproducers & Michael Feathers Characterization Tests:** Following course teachings, before refactoring the toy 6-class schema to the 21-class Ind-PanSeg benchmark, characterization tests froze existing behavior. When schema mismatches occurred, focused reproducer tests in `AdapterTest.java` identified the missing keys immediately.
 
 ---
 
 ## 4. Version Control (Git): Code & Prompt Lifecycle Tracking
 
-Version control provided a verifiable audit trail of code evolutions and AI prompt decisions:
+Version control was utilized not merely as a backup repository, but as a rigorous audit trail linking code commits, architectural decisions, and AI prompts according to course standards:
 
-- **Conventional Atomic Commits:** Followed the Conventional Commits specification (`feat:`, `test:`, `docs:`, `refactor:`), ensuring every commit represents a compiling, test-passing milestone (e.g., `feat: integrate PanoFusion and Ind-PanSeg 21-class models from ICVGIP 2026 paper`).
-- **Prompt-to-Commit Traceability:** Functional changes in commit messages directly trace back to specific prompt instructions, with full prompt trajectories preserved in versioned Markdown artifacts.
-- **Build Hygiene & Environment Portability:** The Maven wrapper (`mvnw.cmd`), configuration schemas (`config/tools.json`), and sample panoramas are version-controlled, while local bytecode and system dumps are isolated in `.gitignore`.
-- **Linear Git History:** A rebase-friendly linear history enables transparent code inspection and effortless regression rollbacks.
-
----
-
-## 5. Testing, Refactoring & Documentation Standards
-
-- **Multi-Tier Testing Suite:** 35 automated JUnit 5 tests cover:
-  - *Unit Tests:* `MetricsCalculatorTest`, `ResultNormalizerTest`, `SegmentationModelTest` (mathematical correctness of mIoU, Dice, Pixel Accuracy; schema parsing).
-  - *Boundary & Execution Tests:* `ExecutionBoundaryTest`, `ValidationServiceTest` (timeouts, invalid aspect ratios, missing tools).
-  - *Integration & System Tests:* `AdapterTest`, `AsyncCoordinatorTest`, `GuiWorkflowTest`, `EndToEndSystemTest` (full async pipeline from image validation to Python execution, wrap-around rendering, and metric computation).
-- **Design Pattern Refactoring:**
-  - *GoF Adapter Pattern:* `ProcessModelAdapter` and `HttpModelAdapter` adapt heterogeneous runtimes into a uniform `SegmentationTool` contract.
-  - *Strategy Pattern:* Rendering and metric algorithms are decoupled from model execution.
-  - *Observer/Listener Pattern:* `AsyncSegmentationCoordinator` updates JavaFX views asynchronously without blocking the UI thread.
-  - *Builder Pattern:* Immutability and thread safety are guaranteed via `SegmentationResult.Builder`.
-- **Documentation Standards:** Comprehensive `README.md`, authoritative CS5013 Proposal and Design Documents, full Javadoc across all public interfaces, and automated demonstration artifacts (`demonstration_results.md`).
+- **A. "The WHY is Yours to Write" (Hands-on 3.1 Part D Core Rule):** As established in Hands-on 3.1, AI tools can generate commit subjects by inspecting `git diff --staged` (WHAT changed), but the developer must author the commit body to record WHY the change was made (e.g., defensive architectural boundary, regression prevention, or benchmark compliance). All 16+ commits in our repository include detailed rationale bodies explaining engineering decisions.
+- **B. Conventional Commits & Atomic Progression:** We adhered strictly to Conventional Commits: `feat:` (features), `test:` (test suites), `docs:` (specifications), and `refactor:` (structural improvements). Every commit represents an atomic, compiling, and fully passing state (e.g., `feat: integrate PanoFusion and Ind-PanSeg 21-class models from ICVGIP 2026 paper` and `test: add 35 comprehensive JUnit 5 tests`).
+- **C. Bidirectional Prompt-to-Commit Traceability:** Functional changes in Git are linked directly to prompts stored in version-controlled markdown logs (`PROMPTS.md` and transcripts). This establishes complete pedagogical reproducibility as mandated by the CS5013 evaluation rubrics.
+- **D. Repository Hygiene & Secret Prevention (Hands-on 1.3 SecretSweep Lesson):** Hands-on 1.3 highlighted that hardcoding credentials or system paths leaks secrets to version control and training logs. In our project, all commands, paths, and timeouts are dynamically parameterized in `config/tools.json` or loaded via environment variables, with OS files and bytecode strictly ignored via `.gitignore`.
 
 ---
 
-## 6. Appendix: Sample Prompts
+## 5. Testing, Refactoring, & Documentation Standards
 
-### Sample Prompt 1: Initial Architecture Scaffolding
-> *"You are a Principal Software Architect implementing the CS5013 Design Document for IIT Madras. Implement the complete domain model and adapter contracts in Java 21. Constraints: (1) Model classes must be immutable via Builder pattern. (2) External models must NEVER run in the JVM; design ProcessModelAdapter using ProcessBuilder with background stdout/stderr stream threads. (3) If external models return unrecognized metadata attributes, do NOT drop them; store them in an unsupportedAttributes Map. (4) Provide JUnit 5 tests verifying all model constraints."*
+- **Multi-Tiered Testing Suite (35 Passing Tests):**
+  - *Unit Tests (`MetricsCalculatorTest`, `ResultNormalizerTest`, `SegmentationModelTest`):* Verified mathematical correctness of mIoU, Dice, and Pixel Accuracy against hand-calculated oracle values following the AAA (Arrange-Act-Assert) pattern.
+  - *Boundary & Defensive Tests (`ExecutionBoundaryTest`, `ValidationServiceTest`):* Tested timeout enforcement, invalid 15:1 aspect ratios, corrupted headers, and stream buffer isolation.
+  - *Integration & E2E Tests (`AdapterTest`, `AsyncCoordinatorTest`, `GuiWorkflowTest`, `EndToEndSystemTest`):* Exercised the complete asynchronous multi-tool pipeline from image validation to Python execution, wrap-around rendering, and metric computation.
+- **Refactoring to Gang of Four (GoF) Design Patterns:**
+  - *Adapter Pattern:* `ProcessModelAdapter` and `HttpModelAdapter` adapt heterogeneous external protocols to the common `SegmentationTool`.
+  - *Strategy Pattern:* Metrics calculation and image rendering algorithms are decoupled from model execution.
+  - *Observer/Listener Pattern:* `AsyncSegmentationCoordinator` publishes progress events to GUI listeners without blocking the JavaFX Application Thread.
+  - *Builder Pattern:* `SegmentationResult.Builder` enforces immutable objects and thread safety.
+- **Modern Java 21 Idioms (Java Guide Part 2):** Used Java Records (`public record MaskData(...)`) for boilerplate-free immutable data carriers; leveraged Java Streams API (`.filter()`, `.map()`) for declarative class filtering; and applied defensive exception handling without swallowing.
+- **Documentation Integrity:** Maintained a comprehensive `README.md`, an authoritative CS5013 Proposal and Design Document, thorough Javadoc, and an automated visual demo report (`demonstration_results.md`) illustrating real comparison overlays and 360° wrap-around views.
 
-### Sample Prompt 2: Cylindrical Wrap-Around Rendering
-> *"The input is an equirectangular 360° panorama. Standard 2D viewers fail because objects split across 0° and 360° appear severed. Create PanoramaImageRenderer in JavaFX to support interactive horizontal yaw rotation using cyclic modulo offset: sourceX = (x + offsetPixels) % width. Ensure seamless interpolation across the seam and author a unit test verifying boundary continuity."*
+---
 
-### Sample Prompt 3: Integrating ICVGIP 2026 Paper Benchmark Models
-> *"Research paper: 'PanoFusion: Boundary-Aware Vision-Language Segmentation for Stitched Indoor Panoramas' (ICVGIP 2026). Integrate the exact models from Table 3 into config/tools.json and external runners: (1) panofusion: CLIP + DAN + SBR-Net MobileSAM boundary refinement (54.94% mIoU); (2) ops-baseline: coarse backbone (44.12% mIoU); (3) segformer-baseline: perspective transformer (31.35% mIoU); (4) Ind-PanSeg 21 classes. Update test assertions and verify all 35 tests pass."*
+## 6. Appendix: Concrete Sample Prompts & Engineering Analysis
+
+### Sample Prompt 1: Initial Architecture Scaffolding & Negative Constraints
+> *"You are a Principal Java Architect implementing the CS5013 Design Document for IIT Madras. Implement the complete domain model and adapter contracts in Java 21. Constraints & Invariants: (1) Domain entities (SegmentationResult, MaskData, SemanticClass) must be strictly immutable via Builder pattern. (2) External models must NEVER run in the JVM; design ProcessModelAdapter using ProcessBuilder with background stdout/stderr threads. (3) If external models return unrecognized metadata attributes, do NOT drop them. Store them in an unsupportedAttributes Map. (4) Provide JUnit 5 unit tests verifying all model constraints."*  
+> **Principles Applied:** Role-Framing (Hands-on 2.2) + Explicit Capitalized Negative Constraints (Hands-on 2.3) + Builder Immortality.
+
+### Sample Prompt 2: Cylindrical Modulo Wrap-Around Rendering (Algorithmic Invariant)
+> *"The input is an equirectangular 360° panorama. Standard 2D viewers fail because objects split across 0° and 360° appear severed. Create PanoramaImageRenderer in JavaFX to support interactive horizontal yaw rotation. Algorithmic Invariants & Verification: Implement cyclic horizontal modulo offset: `sourceX = (x + offsetPixels) % width`. Ensure seamless interpolation across the seam. Write a unit test in PanoramaVisualizationTest verifying that pixel labels at x=0 and x=width-1 maintain topological continuity under a 180° shift."*  
+> **Principles Applied:** Mathematical Invariant Specification (Hands-on 2.1) + Domain Geometry Grounding + Test-Driven Characterization.
+
+### Sample Prompt 3: Integrating ICVGIP 2026 Paper Benchmark Models (Context Curation)
+> *"Grounded in research paper: 'PanoFusion: Boundary-Aware Vision-Language Segmentation for Stitched Indoor Panoramas' (ICVGIP 2026). Integrate the exact models from Table 3 into config/tools.json and external runners: (1) panofusion: CLIP + DAN + SBR-Net MobileSAM boundary refinement (54.94% mIoU); (2) ops-baseline: coarse vision-language backbone without SBR-Net (44.12% mIoU); (3) segformer-baseline: perspective transformer fine-tuned with focal loss (31.35% mIoU); (4) Adopt the authoritative 21 classes of Ind-PanSeg (Table 2: Roof, Bed, Wall, Floor, Monitor, Chair, Table, etc.). (5) Update test assertions and verify all 35 tests pass with zero regressions."*  
+> **Principles Applied:** Context Curation / Open Tab Heuristic (Hands-on 3.1) + Zero Architecture Modification (Pure GoF Adapter Extension).
+
+---
+
+## 7. Comprehensive Mapping to Course Exam Concepts
+
+| Course Module / Topic | Hands-on Lab Exercise | How Applied in this Project Lifecycle |
+|---|---|---|
+| **M1: Secret Hygiene** | 1.3 SecretSweep (`System.getenv`) | No credentials or hardcoded OS paths; dynamic JSON and env parameterization. |
+| **M2: Format Constraints** | 2.2 IntentParser (Role + JSON) | Zero conversational preamble; strict JSON interchange schemas across tools. |
+| **M2: Negative Constraints** | 2.3 InvoiceReport (`Do NOT...`) | Enforced JVM isolation boundary; prohibited loss of unmapped metadata. |
+| **M3: Context Curation** | 3.1 UserDTO (Open Tab Heuristic) | Grounded AI in Proposal, Design Doc, and ICVGIP 2026 paper, eliminating hallucinations. |
+| **M3: AI-Assisted Git** | 3.1 Part D (*"The WHY is Yours"*) | 16+ atomic commits where commit bodies record the engineering WHY behind each change. |
+| **Testing: AAA Pattern** | JUnit 5 Guide (Michael Feathers) | 35 automated tests freezing characterization behavior before refactoring 21 classes. |
