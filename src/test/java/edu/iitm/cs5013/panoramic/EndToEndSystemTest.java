@@ -67,7 +67,7 @@ class EndToEndSystemTest {
         // 2. Discover and configure tools
         ToolConfigurationLoader loader = new ToolConfigurationLoader();
         List<ToolConfig> configs = loader.loadFromFile(Path.of("config/tools.json"));
-        ToolConfig pythonCfg = configs.stream().filter(c -> c.getId().equals("pano-seg-py")).findFirst().orElseThrow();
+        ToolConfig pythonCfg = configs.stream().filter(c -> c.getId().equals("panofusion")).findFirst().orElseThrow();
 
         SegmentationTool realPythonTool = new ProcessModelAdapter(pythonCfg);
         SegmentationTool mockTool = new DeterministicTestAdapter("gt-tool", "Ground Truth Generator", false);
@@ -88,7 +88,7 @@ class EndToEndSystemTest {
         List<SegmentationResult> results = execFuture.get(15, TimeUnit.SECONDS);
         assertEquals(2, results.size());
 
-        SegmentationResult pythonResult = results.stream().filter(r -> r.getToolId().equals("pano-seg-py")).findFirst().orElseThrow();
+        SegmentationResult pythonResult = results.stream().filter(r -> r.getToolId().equals("panofusion")).findFirst().orElseThrow();
         SegmentationResult mockResult = results.stream().filter(r -> r.getToolId().equals("gt-tool")).findFirst().orElseThrow();
 
         assertTrue(pythonResult.isSuccess(), "Python tool execution should succeed");

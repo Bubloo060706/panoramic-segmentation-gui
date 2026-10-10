@@ -56,31 +56,32 @@ class AdapterTest {
         ToolConfigurationLoader loader = new ToolConfigurationLoader();
         List<ToolConfig> configs = loader.loadFromFile(Path.of("config/tools.json"));
         ToolConfig pythonToolConfig = configs.stream()
-                .filter(c -> c.getId().equals("pano-seg-py"))
+                .filter(c -> c.getId().equals("panofusion"))
                 .findFirst()
                 .orElseThrow();
 
         ProcessModelAdapter adapter = new ProcessModelAdapter(pythonToolConfig);
         assertTrue(adapter.isAvailable(), "Real Python script runner should be available");
 
-        SegmentationRequest request = new SegmentationRequest(testImgPath.toString(), "pano-seg-py");
+        SegmentationRequest request = new SegmentationRequest(testImgPath.toString(), "panofusion");
         SegmentationResult result = adapter.segment(request);
 
         assertNotNull(result);
         assertTrue(result.isSuccess());
-        assertEquals("pano-seg-py", result.getToolId());
+        assertEquals("panofusion", result.getToolId());
         assertEquals(800, result.getWidth());
         assertEquals(400, result.getHeight());
 
-        // Verify detected classes from real Python segmentation
+        // Verify detected classes from real Python segmentation adhering to Ind-PanSeg taxonomy
         List<SemanticClass> classes = result.getDetectedClasses();
         assertFalse(classes.isEmpty());
-        assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Ceiling")));
+        assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Roof")));
         assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Wall")));
         assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Floor")));
 
         // Verify unmapped metadata from Python output was preserved
-        assertTrue(result.getUnsupportedAttributes().containsKey("model") ||
-                result.getUnsupportedAttributes().containsKey("projection"));
+        assertTrue(result.getUnsupportedAttributes().containsKey("dataset") ||
+                result.getUnsupportedAttributes().containsKey("benchmark_mIoU") ||
+                result.getUnsupportedAttributes().containsKey("taxonomy"));
     }
 }

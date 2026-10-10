@@ -25,6 +25,28 @@ This project provides a clean, extensible Java desktop application with a JavaFX
 
 ---
 
+## 1.1 Reference Paper & Model Benchmark Support
+
+This implementation integrates and benchmarks the models from the research paper:  
+**"PanoFusion: Boundary-Aware Vision-Language Segmentation for Stitched Indoor Panoramas"**  
+*(Proceedings of the 17th Indian Conference on Computer Vision, Graphics and Image Processing - ICVGIP 2026, Submission 214)*
+
+### Supported Models (Table 3 in Paper):
+| Model ID | Framework | Description | Ind-PanSeg mIoU | Ind-PanSeg mAcc |
+|---|---|---|:---:|:---:|
+| `panofusion` | **PanoFusion (Proposed)** | Frozen CLIP + Deformable Adapter Network + SBR-Net MobileSAM gated cross-attention refinement | **54.94%** | **77.00%** |
+| `ops-baseline` | **OPS Baseline [Zheng et al., ECCV 2024]** | Coarse vision-language backbone (CLIP + DAN) without SBR-Net | 44.12% | 66.46% |
+| `omnisam-baseline` | **OmniSAM [Zhong et al., ICCV 2025]** | Omnidirectional Segment Anything Model with SAM2 memory adaptation | 41.66% | 51.62% |
+| `segformer-baseline` | **SegFormer [Xie et al., NeurIPS 2021]** | Transformer-based perspective baseline fine-tuned with focal loss | 31.35% | 70.57% |
+| `deterministic-mock` | **Ind-PanSeg Ground Truth** | Deterministic reference adapter adhering to Ind-PanSeg 21-class schema | Reference | Reference |
+
+### Ind-PanSeg Semantic Taxonomy (21 Classes, Table 2 in Paper):
+- **Structural Classes:** `Roof` (0), `Wall` (5), `Floor` (8), `Door` (11), `Curtain` (12), `Window` (14), `Obstruction` (2), `Misc.` (15)
+- **Object-Level Classes:** `Bed` (1), `Refrigerator` (3), `Phone` (4), `Furniture` (6), `Electronics` (7), `Monitor` (9), `Cabinet` (10), `Pillow` (13), `Chair` (16), `Table` (17), `Boxes` (18), `Bag` (19), `Bottles` (20)
+- **Ignore Index:** `255` (unlabeled/invalid/stitched seam boundary regions)
+
+---
+
 ## 2. Architecture & Layered Design
 
 ```
