@@ -157,8 +157,7 @@ def build_pdf(filename="CS5013_Principles_and_Practices.pdf"):
     story.append(Paragraph("GUI Framework for Multi-Tool Panoramic Image Segmentation", subtitle_style))
     story.append(Paragraph(
         "<b>Student:</b> Rathan Balaji P R &nbsp;|&nbsp; <b>Roll No:</b> CS26E009 &nbsp;|&nbsp; "
-        "<b>Stakeholder / Faculty:</b> Dr. Sukhendu Das, CSE, IIT Madras<br/>"
-        "<b>Synthesis:</b> Hands-on Labs 1–3, Exam Master Guides &amp; Project Lifecycle Implementation",
+        "<b>Stakeholder / Faculty:</b> Dr. Sukhendu Das, CSE, IIT Madras",
         meta_style
     ))
     story.append(HRFlowable(width="100%", thickness=1, color=c_secondary, spaceBefore=4, spaceAfter=5))

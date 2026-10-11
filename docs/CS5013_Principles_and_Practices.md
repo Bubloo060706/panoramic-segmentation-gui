@@ -3,7 +3,6 @@
 **Course:** CS5013 – Programming with AI | **Semester:** Jan–May 2026 | **Dept. of CSE, IIT Madras**  
 **Student:** Rathan Balaji P R (Roll No: CS26E009)  
 **Stakeholder / Faculty:** Dr. Sukhendu Das, Professor, Dept. of Computer Science & Engineering, IIT Madras  
-**Synthesis:** Applied Course Principles from Hands-on Labs 1–3, Exam Master Guides & Project Lifecycle
 
 ---
 
