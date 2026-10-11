@@ -301,7 +301,8 @@ def build_pdf(filename="CS5013_Principles_and_Practices.pdf"):
          "1. <b>Adapter Pattern:</b> <code>ProcessModelAdapter</code> adapts heterogeneous runtimes into the common <code>SegmentationTool</code> contract.<br/>"
          "2. <b>Strategy Pattern:</b> Metrics calculation and image rendering algorithms are decoupled from model execution.<br/>"
          "3. <b>Observer/Listener Pattern:</b> <code>AsyncSegmentationCoordinator</code> updates JavaFX views asynchronously without blocking UI.<br/>"
-         "4. <b>Builder Pattern:</b> <code>SegmentationResult.Builder</code> guarantees immutability and thread safety."),
+         "4. <b>Builder Pattern:</b> <code>SegmentationResult.Builder</code> guarantees immutability and thread safety.<br/>"
+         "5. <b>Extensibility &amp; OCP:</b> Class taxonomies are configuration-driven via <code>tools.json</code>; new dataset classes (e.g. Stanford2D3D or custom testing sets) can be added for future testing without Java recompilation."),
         ("<b>Modern Java 21 Idioms:</b> ",
          "Used Java Records (<code>public record MaskData(...)</code>) for boilerplate-free immutable data carriers, preventing AI equals/hashCode errors; "
          "leveraged Java Streams API (<code>.filter()</code>, <code>.map()</code>) for declarative class filtering; and applied defensive exception handling without swallowing.")

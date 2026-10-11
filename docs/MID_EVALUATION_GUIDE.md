@@ -110,6 +110,7 @@ During the evaluation, the TAs will ask you to perform a minor code modification
   { "id": 21, "name": "Whiteboard", "red": 255, "green": 255, "blue": 255 }
   ```
 - **Explanation:** *"Our system uses dynamic tool configuration via Jackson JSON. Adding a class in `tools.json` is immediately picked up by `ToolConfigurationLoader` without recompiling the Java code."*
+- **Future Dataset Extensibility:** *"Because class taxonomies are fully decoupled into JSON rather than hardcoded in Java enums, we can easily plug in different dataset classes (e.g., Stanford2D3D, Matterport3D, or custom synthetic test sets) in the future without modifying core business logic."*
 
 ### Task B: "Add a new metric or modify metric calculation (e.g., compute Error Rate or Weighted Accuracy)"
 - **Where:** Open [`src/main/java/edu/iitm/cs5013/panoramic/comparison/MetricsCalculator.java`](file:///c:/Users/balaj/Documents/PAI%20Project/src/main/java/edu/iitm/cs5013/panoramic/comparison/MetricsCalculator.java)
@@ -150,6 +151,15 @@ During the evaluation, the TAs will ask you to perform a minor code modification
   if (sourceX < 0) sourceX += width;
   ```
 - **Explanation:** *"Equirectangular panoramas are topologically cylindrical along the x-axis. We map each pixel coordinate using modular arithmetic `(x + offset) % width`. This guarantees seamless cyclic translation across the 0° and 360° boundary."*
+
+### Task F: "How do we support testing with different dataset classes (e.g., Stanford2D3D or Matterport3D) in the future?"
+- **Where:** Open [`config/tools.json`](file:///c:/Users/balaj/Documents/PAI%20Project/config/tools.json) and [`src/main/java/edu/iitm/cs5013/panoramic/normalization/ResultNormalizer.java`](file:///c:/Users/balaj/Documents/PAI%20Project/src/main/java/edu/iitm/cs5013/panoramic/normalization/ResultNormalizer.java)
+- **Concept:** Open-Closed Principle (OCP) & Dynamic Schema Decoupling
+- **How it works:**
+  1. **Zero Recompilation Needed:** Dataset class taxonomies are never hardcoded in Java classes or enums. All class metadata (IDs, names, RGB color codes) is dynamically configured per tool in `config/tools.json`.
+  2. **Plug-and-Play Future Datasets:** To test a new benchmark in the future (e.g., Stanford 2D-3D-S with 13 classes or Matterport3D with 40 classes), simply declare the new tool or dataset classes in `config/tools.json` or pass a custom configuration to `ToolConfigurationLoader`.
+  3. **Defensive Normalization:** The `ResultNormalizer` translates incoming class IDs into canonical `SemanticClass` objects dynamically. If an external model predicts classes outside the active schema, they are safely preserved in `unsupportedAttributes` rather than crashing the evaluation pipeline.
+- **Explanation for TAs:** *"Our architecture adheres to the Open-Closed Principle: open for dataset extension, closed for code modification. Class taxonomies are configuration-driven, so evaluating on new research benchmarks or custom test sets requires zero Java recompilation."*
 
 ---
 

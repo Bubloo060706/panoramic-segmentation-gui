@@ -69,6 +69,7 @@ Version control was utilized not merely as a backup repository, but as a rigorou
   - *Strategy Pattern:* Metrics calculation and image rendering algorithms are decoupled from model execution.
   - *Observer/Listener Pattern:* `AsyncSegmentationCoordinator` publishes progress events to GUI listeners without blocking the JavaFX Application Thread.
   - *Builder Pattern:* `SegmentationResult.Builder` enforces immutable objects and thread safety.
+  - *Extensibility & Open-Closed Principle (OCP):* Class taxonomies are configuration-driven via `config/tools.json`; new dataset classes (e.g., Stanford2D3D, Matterport3D, or custom testing sets) can be added for future testing and evaluation without recompiling Java code.
 - **Modern Java 21 Idioms (Java Guide Part 2):** Used Java Records (`public record MaskData(...)`) for boilerplate-free immutable data carriers; leveraged Java Streams API (`.filter()`, `.map()`) for declarative class filtering; and applied defensive exception handling without swallowing.
 - **Documentation Integrity:** Maintained a comprehensive `README.md`, an authoritative CS5013 Proposal and Design Document, thorough Javadoc, and an automated visual demo report (`demonstration_results.md`) illustrating real comparison overlays and 360° wrap-around views.
 
