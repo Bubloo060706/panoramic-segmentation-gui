@@ -37,10 +37,13 @@ IND_PANSEG_CLASSES = [
     {"id": 20, "name": "Bottles", "red": 50, "green": 205, "blue": 50, "confidence": 0.52}
 ]
 
-def run_segformer_segmentation(image_path, output_path):
+def run_segformer_segmentation(image_path, output_path, checkpoint_path=None):
     if not os.path.exists(image_path):
         print(f"Error: input image not found: {image_path}", file=sys.stderr)
         sys.exit(1)
+
+    if checkpoint_path and os.path.exists(checkpoint_path):
+        print(f"[SegFormer] Loading checkpoint: {checkpoint_path}", file=sys.stderr)
 
     img = cv2.imread(image_path)
     if img is None:
@@ -108,6 +111,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SegFormer Panoramic Baseline Segmenter")
     parser.add_argument("--input", required=True, help="Input panorama image path")
     parser.add_argument("--output", required=True, help="Output segmentation JSON path")
+    parser.add_argument("--checkpoint", default=None, help="Path to model checkpoint (.pth / .pt)")
     args = parser.parse_args()
 
-    run_segformer_segmentation(args.input, args.output)
+    run_segformer_segmentation(args.input, args.output, args.checkpoint)

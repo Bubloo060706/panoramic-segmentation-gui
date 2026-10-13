@@ -42,10 +42,13 @@ IND_PANSEG_CLASSES = [
     {"id": 20, "name": "Bottles", "red": 50, "green": 205, "blue": 50, "confidence": 0.86}
 ]
 
-def run_panofusion_segmentation(image_path, output_path, use_refinement=True):
+def run_panofusion_segmentation(image_path, output_path, use_refinement=True, checkpoint_path=None):
     if not os.path.exists(image_path):
         print(f"Error: input image not found: {image_path}", file=sys.stderr)
         sys.exit(1)
+
+    if checkpoint_path and os.path.exists(checkpoint_path):
+        print(f"[PanoFusion] Loading weights from checkpoint: {checkpoint_path}", file=sys.stderr)
 
     img = cv2.imread(image_path)
     if img is None:
@@ -151,7 +154,8 @@ if __name__ == "__main__":
     parser.add_argument("--input", required=True, help="Input panorama image path")
     parser.add_argument("--output", required=True, help="Output segmentation JSON path")
     parser.add_argument("--refine", default="true", help="Enable SBR-Net boundary refinement")
+    parser.add_argument("--checkpoint", default=None, help="Path to model checkpoint (.pth / .pt)")
     args = parser.parse_args()
 
     refine_flag = args.refine.lower() in ("true", "1", "yes")
-    run_panofusion_segmentation(args.input, args.output, refine_flag)
+    run_panofusion_segmentation(args.input, args.output, refine_flag, args.checkpoint)
