@@ -29,6 +29,7 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import edu.iitm.cs5013.panoramic.util.ImageLoaderHelper;
 
 /**
  * Main application coordinator and JavaFX presentation layer.
@@ -276,7 +277,12 @@ public class MainViewController {
 
         try {
             this.currentImagePath = path;
-            this.currentJavaFxImage = new Image(new FileInputStream(path.toFile()));
+            Image loadedImage = ImageLoaderHelper.loadJavaFxImage(path);
+            if (loadedImage == null || loadedImage.isError() || loadedImage.getWidth() <= 0) {
+                showError("Failed to decode panoramic image in JavaFX renderer.");
+                return;
+            }
+            this.currentJavaFxImage = loadedImage;
             clearError();
 
             int w = (int) currentJavaFxImage.getWidth();

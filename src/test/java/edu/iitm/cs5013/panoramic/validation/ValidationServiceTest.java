@@ -61,6 +61,15 @@ class ValidationServiceTest {
     }
 
     @Test
+    void testValidatePanoramicImageNonStandardJpeg() {
+        Path hPath = Path.of("H.jpg");
+        if (Files.exists(hPath)) {
+            ValidationResult res = service.validatePanoramicImage(hPath);
+            assertTrue(res.isValid(), "H.jpg should be valid despite SOF 0xce / non-standard camera markers: " + res.getFormattedErrors());
+        }
+    }
+
+    @Test
     void testValidateToolsSelectionEmpty() {
         ValidationResult res = service.validateToolsSelection(List.of());
         assertFalse(res.isValid());

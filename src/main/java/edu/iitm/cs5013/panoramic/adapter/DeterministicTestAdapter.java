@@ -80,14 +80,10 @@ public class DeterministicTestAdapter implements SegmentationAdapter<MaskData> {
         if (simulateFailure) {
             throw new SegmentationException(metadata.getId(), "Simulated preprocessing failure for testing");
         }
-        try {
-            BufferedImage img = ImageIO.read(request.getImageNioPath().toFile());
-            if (img != null) {
-                this.cachedWidth = img.getWidth();
-                this.cachedHeight = img.getHeight();
-            }
-        } catch (IOException e) {
-            throw new SegmentationException(metadata.getId(), "Failed to read image dimensions", e);
+        int[] dims = edu.iitm.cs5013.panoramic.util.ImageLoaderHelper.getImageDimensions(request.getImageNioPath());
+        if (dims != null && dims[0] > 0 && dims[1] > 0) {
+            this.cachedWidth = dims[0];
+            this.cachedHeight = dims[1];
         }
     }
 

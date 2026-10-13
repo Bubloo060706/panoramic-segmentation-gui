@@ -71,16 +71,12 @@ public class HttpModelAdapter implements SegmentationAdapter<String> {
     @Override
     public void preprocess(SegmentationRequest request) throws SegmentationException {
         request.validate();
-        try {
-            BufferedImage img = ImageIO.read(request.getImageNioPath().toFile());
-            if (img == null) {
-                throw new SegmentationException(config.getId(), "Unable to decode panoramic image: " + request.getImagePath());
-            }
-            this.cachedInputWidth = img.getWidth();
-            this.cachedInputHeight = img.getHeight();
-        } catch (IOException e) {
-            throw new SegmentationException(config.getId(), "Failed to read image: " + e.getMessage(), e);
+        int[] dims = edu.iitm.cs5013.panoramic.util.ImageLoaderHelper.getImageDimensions(request.getImageNioPath());
+        if (dims == null || dims[0] <= 0 || dims[1] <= 0) {
+            throw new SegmentationException(config.getId(), "Unable to decode panoramic image: " + request.getImagePath());
         }
+        this.cachedInputWidth = dims[0];
+        this.cachedInputHeight = dims[1];
     }
 
     @Override

@@ -130,13 +130,19 @@ def run_sam_segmentation(image_path, output_path, checkpoint_path=None, model_ty
         "refinement_enabled": True,
         "benchmark_mIoU": 48.20,
         "benchmark_mAcc": 72.50,
-        "classes": classes_palette,
-        "labels": labels.flatten().tolist()
+        "classes": classes_palette
     }
 
     out_dir = os.path.dirname(os.path.abspath(output_path))
     if out_dir and not os.path.exists(out_dir):
         os.makedirs(out_dir, exist_ok=True)
+
+    if w * h > 1000000:
+        mask_path = output_path.replace(".json", "_mask.png")
+        cv2.imwrite(mask_path, labels.astype(np.uint8) if num_objects < 256 else labels.astype(np.uint16))
+        output_data["maskPath"] = os.path.abspath(mask_path).replace("\\", "/")
+    else:
+        output_data["labels"] = labels.flatten().tolist()
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(output_data, f)

@@ -136,13 +136,19 @@ def run_panofusion_segmentation(image_path, output_path, use_refinement=True, ch
         "refinement_enabled": bool(use_refinement),
         "benchmark_mIoU": float(mIoU_benchmark),
         "benchmark_mAcc": float(mAcc_benchmark),
-        "classes": IND_PANSEG_CLASSES,
-        "labels": labels.flatten().tolist()
+        "classes": IND_PANSEG_CLASSES
     }
 
     out_dir = os.path.dirname(os.path.abspath(output_path))
     if out_dir and not os.path.exists(out_dir):
         os.makedirs(out_dir, exist_ok=True)
+
+    if w * h > 1000000:
+        mask_path = output_path.replace(".json", "_mask.png")
+        cv2.imwrite(mask_path, labels.astype(np.uint8))
+        output_data["maskPath"] = os.path.abspath(mask_path).replace("\\", "/")
+    else:
+        output_data["labels"] = labels.flatten().tolist()
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(output_data, f)

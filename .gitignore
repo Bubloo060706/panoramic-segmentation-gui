@@ -26,3 +26,4 @@ models/checkpoints/
 *.pt
 *.bin
 maven_proxy.py
+H.jpg

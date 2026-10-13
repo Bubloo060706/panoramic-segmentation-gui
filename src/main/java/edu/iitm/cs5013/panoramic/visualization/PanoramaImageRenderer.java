@@ -32,15 +32,15 @@ public class PanoramaImageRenderer {
         int width = mask.getWidth();
         int height = mask.getHeight();
 
-        Map<Integer, Color> palette = buildColorPalette(result);
+        Map<Integer, Integer> palette = buildIntArgbPalette(result);
         WritableImage output = new WritableImage(width, height);
         PixelWriter writer = output.getPixelWriter();
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int label = mask.getLabel(x, y);
-                Color color = palette.getOrDefault(label, Color.rgb(128, 128, 128));
-                writer.setColor(x, y, color);
+                int argb = palette.getOrDefault(label, 0xFF808080);
+                writer.setArgb(x, y, argb);
             }
         }
 
@@ -70,7 +70,7 @@ public class PanoramaImageRenderer {
         double clampedAlpha = Math.clamp(alpha, 0.0, 1.0);
         double baseWeight = 1.0 - clampedAlpha;
 
-        Map<Integer, Color> palette = buildColorPalette(result);
+        Map<Integer, int[]> palette = buildIntRgbPalette(result);
         WritableImage output = new WritableImage(width, height);
         PixelWriter writer = output.getPixelWriter();
         PixelReader baseReader = baseImage.getPixelReader();
@@ -84,14 +84,19 @@ public class PanoramaImageRenderer {
             for (int x = 0; x < width; x++) {
                 int maskX = Math.min((int) (x * scaleX), mask.getWidth() - 1);
                 int label = mask.getLabel(maskX, maskY);
-                Color maskColor = palette.getOrDefault(label, Color.rgb(128, 128, 128));
-                Color baseColor = baseReader.getColor(x, y);
+                int[] maskRgb = palette.getOrDefault(label, new int[]{128, 128, 128});
+                int baseArgb = baseReader.getArgb(x, y);
 
-                double r = (baseColor.getRed() * baseWeight) + (maskColor.getRed() * clampedAlpha);
-                double g = (baseColor.getGreen() * baseWeight) + (maskColor.getGreen() * clampedAlpha);
-                double b = (baseColor.getBlue() * baseWeight) + (maskColor.getBlue() * clampedAlpha);
+                int baseR = (baseArgb >> 16) & 0xFF;
+                int baseG = (baseArgb >> 8) & 0xFF;
+                int baseB = baseArgb & 0xFF;
 
-                writer.setColor(x, y, new Color(r, g, b, 1.0));
+                int r = (int) (baseR * baseWeight + maskRgb[0] * clampedAlpha);
+                int g = (int) (baseG * baseWeight + maskRgb[1] * clampedAlpha);
+                int b = (int) (baseB * baseWeight + maskRgb[2] * clampedAlpha);
+
+                int blended = (0xFF << 24) | (r << 16) | (g << 8) | b;
+                writer.setArgb(x, y, blended);
             }
         }
 
@@ -102,6 +107,7 @@ public class PanoramaImageRenderer {
      * Performs horizontal wrap-around rotation on an equirectangular image by a specified yaw angle in degrees.
      * In a 360° equirectangular projection, horizontal translation wraps cyclically from the 360° right edge
      * to the 0° left edge, allowing continuous inspection of wrap-around entities.
+     * Uses fast bulk block copies for maximum performance on high-resolution panoramas.
      *
      * @param source The equirectangular image to rotate.
      * @param yawDegrees The horizontal shift angle in degrees [0, 360).
@@ -125,23 +131,29 @@ public class PanoramaImageRenderer {
         PixelWriter writer = wrapped.getPixelWriter();
         PixelReader reader = source.getPixelReader();
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                // Cylindrical wrap around modulo arithmetic
-                int srcX = (x + shiftPixels) % width;
-                Color c = reader.getColor(srcX, y);
-                writer.setColor(x, y, c);
-            }
-        }
+        // Bulk copy two rectangular blocks for instant 360 wrap around
+        writer.setPixels(0, 0, width - shiftPixels, height, reader, shiftPixels, 0);
+        writer.setPixels(width - shiftPixels, 0, shiftPixels, height, reader, 0, 0);
 
         return wrapped;
     }
 
-    private Map<Integer, Color> buildColorPalette(SegmentationResult result) {
-        Map<Integer, Color> palette = new HashMap<>();
+    private Map<Integer, Integer> buildIntArgbPalette(SegmentationResult result) {
+        Map<Integer, Integer> palette = new HashMap<>();
         if (result.getDetectedClasses() != null) {
             for (SemanticClass sc : result.getDetectedClasses()) {
-                palette.put(sc.getId(), Color.rgb(sc.getRed(), sc.getGreen(), sc.getBlue()));
+                int argb = (0xFF << 24) | (sc.getRed() << 16) | (sc.getGreen() << 8) | sc.getBlue();
+                palette.put(sc.getId(), argb);
+            }
+        }
+        return palette;
+    }
+
+    private Map<Integer, int[]> buildIntRgbPalette(SegmentationResult result) {
+        Map<Integer, int[]> palette = new HashMap<>();
+        if (result.getDetectedClasses() != null) {
+            for (SemanticClass sc : result.getDetectedClasses()) {
+                palette.put(sc.getId(), new int[]{sc.getRed(), sc.getGreen(), sc.getBlue()});
             }
         }
         return palette;
@@ -151,13 +163,7 @@ public class PanoramaImageRenderer {
         int w = (int) src.getWidth();
         int h = (int) src.getHeight();
         WritableImage copy = new WritableImage(w, h);
-        PixelWriter writer = copy.getPixelWriter();
-        PixelReader reader = src.getPixelReader();
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                writer.setColor(x, y, reader.getColor(x, y));
-            }
-        }
+        copy.getPixelWriter().setPixels(0, 0, w, h, src.getPixelReader(), 0, 0);
         return copy;
     }
 }

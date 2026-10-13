@@ -194,13 +194,17 @@ public class ResultNormalizer {
             int h = img.getHeight();
             int[] labels = new int[w * h];
 
-            // If image is indexed or grayscale, pixel value directly gives class ID
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    int rgb = img.getRGB(x, y);
-                    // For grayscale, r == g == b
-                    int gray = rgb & 0xFF;
-                    labels[y * w + x] = gray;
+            if (img.getType() == BufferedImage.TYPE_BYTE_GRAY && img.getRaster().getDataBuffer() instanceof java.awt.image.DataBufferByte byteBuffer) {
+                byte[] byteData = byteBuffer.getData();
+                int limit = Math.min(labels.length, byteData.length);
+                for (int i = 0; i < limit; i++) {
+                    labels[i] = byteData[i] & 0xFF;
+                }
+            } else {
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        labels[y * w + x] = img.getRGB(x, y) & 0xFF;
+                    }
                 }
             }
 

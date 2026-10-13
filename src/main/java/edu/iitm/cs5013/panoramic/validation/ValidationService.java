@@ -50,15 +50,15 @@ public class ValidationService {
                 return ValidationResult.failure("Image file is empty (0 bytes)");
             }
 
-            BufferedImage img = ImageIO.read(path.toFile());
-            if (img == null) {
-                return ValidationResult.failure("Could not decode image (file may be corrupted): " + fileName);
+            int[] dims = edu.iitm.cs5013.panoramic.util.ImageLoaderHelper.getImageDimensions(path);
+            if (dims == null || dims[0] <= 0 || dims[1] <= 0) {
+                return ValidationResult.failure("Could not decode image (file may be corrupted or unsupported): " + fileName);
             }
 
-            List<String> warnings = new ArrayList<>();
-            int w = img.getWidth();
-            int h = img.getHeight();
+            int w = dims[0];
+            int h = dims[1];
 
+            List<String> warnings = new ArrayList<>();
             // Typical 360 equirectangular panoramas have a 2:1 aspect ratio
             double ratio = (double) w / h;
             if (Math.abs(ratio - 2.0) > 0.05) {
