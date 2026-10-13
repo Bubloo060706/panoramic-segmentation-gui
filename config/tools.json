@@ -192,6 +192,55 @@
     ]
   },
   {
+    "id": "sam-vit-b",
+    "name": "SAM (Segment Anything ViT-B)",
+    "description": "Meta Segment Anything Model (ViT-B) with zero-shot spatial adaptation",
+    "executionType": "PROCESS",
+    "commandTemplate": [
+      "python",
+      "scripts/sam_segmenter.py",
+      "--input",
+      "{IMAGE_PATH}",
+      "--output",
+      "{OUTPUT_PATH}",
+      "--checkpoint",
+      "C:/Users/balaj/Documents/SAM_Project - Ground Truth Image Generator (IIT Madras)/sam_vit_b_01ec64.pth"
+    ],
+    "workingDirectory": ".",
+    "timeoutSeconds": 90,
+    "enabled": true,
+    "parameters": {
+      "framework": "Meta SAM",
+      "backbone": "ViT-B",
+      "num_classes": 21,
+      "benchmark_mIoU": "48.20%",
+      "benchmark_mAcc": "72.50%"
+    },
+    "supportedClasses": [
+      { "id": 0, "name": "Roof", "red": 70, "green": 130, "blue": 180 },
+      { "id": 1, "name": "Bed", "red": 147, "green": 112, "blue": 219 },
+      { "id": 2, "name": "Obstruction", "red": 128, "green": 128, "blue": 128 },
+      { "id": 3, "name": "Refrigerator", "red": 220, "green": 20, "blue": 60 },
+      { "id": 4, "name": "Phone", "red": 255, "green": 20, "blue": 147 },
+      { "id": 5, "name": "Wall", "red": 245, "green": 222, "blue": 179 },
+      { "id": 6, "name": "Furniture", "red": 210, "green": 105, "blue": 30 },
+      { "id": 7, "name": "Electronics", "red": 0, "green": 191, "blue": 255 },
+      { "id": 8, "name": "Floor", "red": 139, "green": 69, "blue": 19 },
+      { "id": 9, "name": "Monitor", "red": 0, "green": 255, "blue": 255 },
+      { "id": 10, "name": "Cabinet", "red": 205, "green": 133, "blue": 63 },
+      { "id": 11, "name": "Door", "red": 255, "green": 140, "blue": 0 },
+      { "id": 12, "name": "Curtain", "red": 218, "green": 112, "blue": 214 },
+      { "id": 13, "name": "Pillow", "red": 255, "green": 182, "blue": 193 },
+      { "id": 14, "name": "Window", "red": 0, "green": 206, "blue": 209 },
+      { "id": 15, "name": "Misc.", "red": 169, "green": 169, "blue": 169 },
+      { "id": 16, "name": "Chair", "red": 255, "green": 215, "blue": 0 },
+      { "id": 17, "name": "Table", "red": 160, "green": 82, "blue": 45 },
+      { "id": 18, "name": "Boxes", "red": 210, "green": 180, "blue": 140 },
+      { "id": 19, "name": "Bag", "red": 255, "green": 105, "blue": 180 },
+      { "id": 20, "name": "Bottles", "red": 50, "green": 205, "blue": 50 }
+    ]
+  },
+  {
     "id": "deterministic-mock",
     "name": "Deterministic Ind-PanSeg Reference",
     "description": "Deterministic reference adapter adhering to Ind-PanSeg 21-class specification",
