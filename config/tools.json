@@ -199,7 +199,7 @@
     "commandTemplate": [],
     "workingDirectory": ".",
     "timeoutSeconds": 10,
-    "enabled": true,
+    "enabled": false,
     "parameters": {
       "mock": true
     },
