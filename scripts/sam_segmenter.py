@@ -73,19 +73,21 @@ def run_sam_segmentation(image_path, output_path, checkpoint_path=None, model_ty
             sam = sam_model_registry[model_type](checkpoint=checkpoint_path)
             sam.to(device=device)
 
-            # Use lightweight parameters on CPU for responsive execution
-            points_per_side = 16 if device == "cpu" else 32
+            # Use lightweight parameters on CPU for responsive execution (finishes in ~10-15s)
+            points_per_side = 6 if device == "cpu" else 32
             mask_generator = SamAutomaticMaskGenerator(
                 model=sam,
                 points_per_side=points_per_side,
                 pred_iou_thresh=0.86,
-                stability_score_thresh=0.92,
-                min_mask_region_area=3000
+                stability_score_thresh=0.90,
+                min_mask_region_area=1500
             )
 
-            # Scale down temporarily if large panorama on CPU for fast response
-            if device == "cpu" and max(h, w) > 1024:
-                scale = 1024.0 / max(h, w)
+            # Scale down on CPU to 512 max dimension for fast transformer execution
+            needs_upscale = False
+            if device == "cpu" and max(h, w) > 512:
+                needs_upscale = True
+                scale = 512.0 / max(h, w)
                 proc_w, proc_h = int(w * scale), int(h * scale)
                 small_rgb = cv2.resize(img_rgb, (proc_w, proc_h), interpolation=cv2.INTER_AREA)
                 raw_masks = mask_generator.generate(small_rgb)
@@ -98,7 +100,7 @@ def run_sam_segmentation(image_path, output_path, checkpoint_path=None, model_ty
             # Map SAM instance masks into Ind-PanSeg semantic classes using spatial & color priors
             for mask_info in sorted_masks:
                 seg_mask = mask_info['segmentation']
-                if device == "cpu" and max(h, w) > 1024:
+                if needs_upscale:
                     seg_mask = cv2.resize(seg_mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST).astype(bool)
 
                 # Center of mass of the mask

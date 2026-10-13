@@ -207,7 +207,7 @@
       "C:/Users/balaj/Documents/SAM_Project - Ground Truth Image Generator (IIT Madras)/sam_vit_b_01ec64.pth"
     ],
     "workingDirectory": ".",
-    "timeoutSeconds": 90,
+    "timeoutSeconds": 180,
     "enabled": true,
     "parameters": {
       "framework": "Meta SAM",
