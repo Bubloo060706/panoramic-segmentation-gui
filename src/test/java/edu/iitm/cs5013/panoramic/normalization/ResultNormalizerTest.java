@@ -2,10 +2,12 @@ package edu.iitm.cs5013.panoramic.normalization;
 
 import edu.iitm.cs5013.panoramic.config.ExecutionType;
 import edu.iitm.cs5013.panoramic.config.ToolConfig;
+import edu.iitm.cs5013.panoramic.model.MaskData;
 import edu.iitm.cs5013.panoramic.model.SegmentationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,5 +86,27 @@ class ResultNormalizerTest {
         // 2x2 = 4, but labels has 3
         assertThrows(NormalizationException.class, () ->
                 normalizer.normalizeFromJson(json, sampleConfig, 2, 2));
+    }
+
+    @Test
+    void testLoadGroundTruthFiles() throws Exception {
+        Path gtJson = Path.of("data/ground_truth/sample_panorama_gt.json");
+        if (java.nio.file.Files.exists(gtJson)) {
+            String content = java.nio.file.Files.readString(gtJson);
+            SegmentationResult res = normalizer.normalizeFromJson(content, sampleConfig, 800, 400);
+            assertNotNull(res);
+            assertEquals(800, res.getWidth());
+            assertEquals(400, res.getHeight());
+            assertTrue(res.isSuccess());
+            assertFalse(res.getDetectedClasses().isEmpty());
+        }
+
+        Path gtPng = Path.of("data/ground_truth/sample_panorama_gt.png");
+        if (java.nio.file.Files.exists(gtPng)) {
+            MaskData mask = normalizer.loadMaskFromImageFile(gtPng, sampleConfig);
+            assertNotNull(mask);
+            assertEquals(800, mask.getWidth());
+            assertEquals(400, mask.getHeight());
+        }
     }
 }

@@ -21,6 +21,7 @@ output/
 
 # Large model checkpoints / weights
 models/checkpoints/
+PAI Segmentation Checkpoints/
 *.pth
 *.onnx
 *.pt

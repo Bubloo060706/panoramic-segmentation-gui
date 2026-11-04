@@ -12,7 +12,9 @@
       "--output",
       "{OUTPUT_PATH}",
       "--refine",
-      "true"
+      "true",
+      "--checkpoint",
+      "PAI Segmentation Checkpoints/PanoFusion/best_mIoU_iter_141500.pth"
     ],
     "workingDirectory": ".",
     "timeoutSeconds": 60,
@@ -23,7 +25,8 @@
       "boundary_refinement": "SBR-Net (MobileSAM)",
       "num_classes": 21,
       "benchmark_mIoU": "54.94%",
-      "benchmark_mAcc": "77.00%"
+      "benchmark_mAcc": "77.00%",
+      "checkpoint_path": "PAI Segmentation Checkpoints/PanoFusion/best_mIoU_iter_141500.pth"
     },
     "supportedClasses": [
       { "id": 0, "name": "Roof", "red": 70, "green": 130, "blue": 180 },
@@ -62,7 +65,9 @@
       "--output",
       "{OUTPUT_PATH}",
       "--refine",
-      "false"
+      "false",
+      "--checkpoint",
+      "PAI Segmentation Checkpoints/OPS Baseline/best_mIoU_iter_23000.pth"
     ],
     "workingDirectory": ".",
     "timeoutSeconds": 60,
@@ -73,7 +78,8 @@
       "boundary_refinement": "None (Coarse)",
       "num_classes": 21,
       "benchmark_mIoU": "44.12%",
-      "benchmark_mAcc": "66.46%"
+      "benchmark_mAcc": "66.46%",
+      "checkpoint_path": "PAI Segmentation Checkpoints/OPS Baseline/best_mIoU_iter_23000.pth"
     },
     "supportedClasses": [
       { "id": 0, "name": "Roof", "red": 70, "green": 130, "blue": 180 },
@@ -110,7 +116,9 @@
       "--input",
       "{IMAGE_PATH}",
       "--output",
-      "{OUTPUT_PATH}"
+      "{OUTPUT_PATH}",
+      "--checkpoint",
+      "PAI Segmentation Checkpoints/OmniSAM/best_sam2_s_iou_41.18.pth"
     ],
     "workingDirectory": ".",
     "timeoutSeconds": 60,
@@ -119,7 +127,8 @@
       "framework": "OmniSAM (ICCV 2025)",
       "num_classes": 21,
       "benchmark_mIoU": "41.66%",
-      "benchmark_mAcc": "51.62%"
+      "benchmark_mAcc": "51.62%",
+      "checkpoint_path": "PAI Segmentation Checkpoints/OmniSAM/best_sam2_s_iou_41.18.pth"
     },
     "supportedClasses": [
       { "id": 0, "name": "Roof", "red": 70, "green": 130, "blue": 180 },
@@ -160,7 +169,7 @@
     ],
     "workingDirectory": ".",
     "timeoutSeconds": 60,
-    "enabled": true,
+    "enabled": false,
     "parameters": {
       "framework": "SegFormer (NeurIPS 2021)",
       "num_classes": 21,
@@ -204,7 +213,7 @@
       "--output",
       "{OUTPUT_PATH}",
       "--checkpoint",
-      "C:/Users/balaj/Documents/SAM_Project - Ground Truth Image Generator (IIT Madras)/sam_vit_b_01ec64.pth"
+      "PAI Segmentation Checkpoints/SAM/sam_vit_b_01ec64.pth"
     ],
     "workingDirectory": ".",
     "timeoutSeconds": 180,
@@ -214,7 +223,8 @@
       "backbone": "ViT-B",
       "num_classes": 21,
       "benchmark_mIoU": "48.20%",
-      "benchmark_mAcc": "72.50%"
+      "benchmark_mAcc": "72.50%",
+      "checkpoint_path": "PAI Segmentation Checkpoints/SAM/sam_vit_b_01ec64.pth"
     },
     "supportedClasses": [
       { "id": 0, "name": "Roof", "red": 70, "green": 130, "blue": 180 },
