@@ -1,6 +1,5 @@
 package edu.iitm.cs5013.panoramic.util;
 
-import javafx.scene.image.Image;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;

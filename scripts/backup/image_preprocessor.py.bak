@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+BACKUP of original image_preprocessor.py (Created per user request).
 Universal Image Preprocessor & Normalizer for Panoramic Framework.
 Handles non-standard camera JPEGs (SOF 0xce, SOS markers, proprietary EXIF markers like 0xa0).
 Ensures any panoramic image of any resolution can be seamlessly loaded by JavaFX.

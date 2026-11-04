@@ -45,7 +45,7 @@
 | - OmniSAM (ICCV 2025 SAM2 Adaptations)            |
 | - SAM (ViT-B Class-Agnostic Instance Discovery)   |
 | - SegFormer & EquirectangularIndoorNet            |
-| - scripts/image_preprocessor.py (OpenCV Bridge)   |
+| - scripts/ImagePreprocessor.java (Java Runner)    |
 +-----------------------+---------------------------+
                         |
                         v (JSON Metadata + Compressed PNG Mask)
@@ -235,7 +235,7 @@ If the Professor or TA asks you to modify code live on the spot, stay calm. Here
 
 ### Scenario 8: "How does the system handle high-res panoramas with non-standard camera JPEGs?"
 - **File:** [`src/main/java/edu/iitm/cs5013/panoramic/util/ImageLoaderHelper.java`](file:///c:/Users/balaj/Documents/PAI%20Project/src/main/java/edu/iitm/cs5013/panoramic/util/ImageLoaderHelper.java)
-- **Explanation:** *"When modern cameras save extended JPEGs (e.g. SOF marker `0xce` in `H.jpg`), standard Java `ImageIO` fails. `ImageLoaderHelper` uses header-only reading first; if non-standard markers are detected, it invokes `scripts/image_preprocessor.py` to sanitize the file via OpenCV into `target/cache/clean_<filename>`, preserving full resolution and enabling seamless display in JavaFX."*
+- **Explanation:** *"When modern cameras save extended JPEGs (e.g. SOF marker `0xce` or proprietary metadata in `H.jpg`), standard Java `ImageIO` fails. `ImageLoaderHelper` uses `ImagePreprocessor`, a native Java engine that performs fast binary marker inspection, directly decodes baseline and extended JPEGs, and sanitizes non-standard markers into `target/cache/clean_<filename>`, preserving full resolution and enabling seamless display in JavaFX with zero external Python dependencies."*
 
 ---
 
