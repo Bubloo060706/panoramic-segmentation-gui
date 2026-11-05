@@ -10,9 +10,10 @@
 | :--- | :---: | :--- |
 | **Real Model Checkpoints** | ✅ Verified | `PAI Segmentation Checkpoints/`<br>• `PanoFusion/best_mIoU_iter_141500.pth` (669.5 MB)<br>• `OPS Baseline/best_mIoU_iter_23000.pth` (610.2 MB)<br>• `OmniSAM/best_sam2_s_iou_41.18.pth` (177.7 MB)<br>• `SAM/sam_vit_b_01ec64.pth` (357.7 MB) |
 | **Ground Truth Suite** | ✅ Verified | `data/ground_truth/`<br>• `sample_panorama_gt.png` & `sample_panorama_gt.json` (800×400)<br>• `H_gt.png` & `H_gt.json` (7808×3744 29MP panorama)<br>• `README.md` paired evaluation guide |
+| **State-of-the-Art Metrics Engine** | ✅ Verified | [`SegmentationMetrics.java`](file:///c:/Users/balaj/Documents/PAI%20Project/src/main/java/edu/iitm/cs5013/panoramic/comparison/SegmentationMetrics.java)<br>• **mIoU** (Mean IoU)<br>• **mAcc** (Mean Class Accuracy)<br>• **Boundary IoU** (Morphological boundary band IoU)<br>• **Boundary F-score** (Boundary precision/recall F1-score)<br>• **Pixel Accuracy & Dice** |
 | **Extensibility & Developer Guide** | ✅ Verified | [`docs/DEVELOPER_GUIDE.md`](file:///c:/Users/balaj/Documents/PAI%20Project/docs/DEVELOPER_GUIDE.md) (Complete guide for adding PyTorch/REST tools with zero Java recompilation) |
 | **Single-Click Portable Launch** | ✅ Verified | [`run.bat`](file:///c:/Users/balaj/Documents/PAI%20Project/run.bat) & [`run.ps1`](file:///c:/Users/balaj/Documents/PAI%20Project/run.ps1) using `%USERPROFILE%\.m2` (100% portable on any Windows machine) |
-| **Automated Test Coverage** | ✅ Verified | **45 JUnit 5 Tests Passing** (0 Failures, 0 Errors, 0 Regressions) across all architectural layers |
+| **Automated Test Coverage** | ✅ Verified | **49 JUnit 5 Tests Passing** (0 Failures, 0 Errors, 0 Regressions) across all architectural layers |
 | **High-Resolution Support** | ✅ Verified | No size/resolution restrictions: small crops to 29MP (`H.jpg`, 7808×3744) seamlessly supported via OpenCV bridge & `maskPath` compression |
 
 ---
@@ -26,7 +27,7 @@ Use this exact script and workflow when recording your screen for the final vide
 - **Narrative:**
   > *"Good day, Professor Sukhendu Das and evaluators. I am Rathan Balaji P R, Roll Number CS26E009, presenting my final project for CS5013: **A Modular GUI Framework for Multi-Tool Panoramic Image Segmentation**.*
   >
-  > *Panoramic indoor vision presents acute challenges: equirectangular geometric distortion, 360° seam discontinuities, extreme resolutions up to 29 megapixels, and heterogeneous deep learning runtimes. Our framework solves these through pure Gang-of-Four design patterns, complete runtime isolation, and panorama-aware visualization."*
+  > *Panoramic indoor vision presents acute challenges: equirectangular geometric distortion, 360° seam discontinuities, extreme resolutions up to 29 megapixels, and heterogeneous deep learning runtimes. Our framework solves these through pure Gang-of-Four design patterns, complete runtime isolation, panorama-aware visualization, and boundary-aware quantitative evaluation."*
 
 ### Part 2: Automated Verification & Portability (0:45 – 1:15)
 - **On Screen:** In PowerShell terminal, run:
@@ -34,31 +35,31 @@ Use this exact script and workflow when recording your screen for the final vide
   .\mvnw.cmd test
   ```
 - **Narrative:**
-  > *"Before launching the GUI, here is our automated verification. The system is backed by **45 automated JUnit 5 tests** testing adapters, normalization, metrics, preprocessors, and execution boundaries. As you can see, all 45 tests pass with zero failures."*
+  > *"Before launching the GUI, here is our automated verification. The system is backed by **49 automated JUnit 5 tests** testing adapters, normalization, boundary metrics, preprocessors, and execution boundaries. As you can see, all 49 tests pass with zero failures."*
 
 ### Part 3: Single-Click Launch & Standard Panorama (1:15 – 2:30)
 - **On Screen:** Double click [`run.bat`](file:///c:/Users/balaj/Documents/PAI%20Project/run.bat) or run `.\run.bat`. The JavaFX GUI appears.
 - **Actions:**
-  1. Click **"Open Image..."** -> Select `data/sample_panorama.jpg`.
-  2. Click **"Load Ground Truth..."** -> Select `data/ground_truth/sample_panorama_gt.png`.
-  3. Select **"PanoFusion"** from the dropdown -> Click **"Run Segmentation"**.
-  4. Note the asynchronous non-blocking execution (spinner active, UI responsive).
-  5. The colored segmentation overlay renders over the panorama.
-  6. Click **"Calculate Metrics"** -> The bottom panel displays:
-     - **Pixel Accuracy:** ~88.4%
-     - **mIoU:** ~0.762
-     - **Dice (F1):** ~0.841
-  7. Drag the **Horizontal Yaw Rotation Slider** from 0° through 180° to 360°.
+  1. Click **"Select 360° Panorama..."** -> Select `data/sample_panorama.jpg`.
+  2. Click **"Load Ground Truth Mask..."** -> Select `data/ground_truth/sample_panorama_gt.png`.
+  3. Notice the **"Run All Models (Side-by-Side)"** button and the **"Select All" / "Clear All"** shortcuts.
+  4. Click **"Run All Models (Side-by-Side)"**.
+  5. The asynchronous coordinator runs all models. Once complete, it automatically switches to the **"Cross-Model Side-by-Side Comparison"** tab.
+  6. The screen presents:
+     - Side-by-side synchronized tiles for the Original Panorama, Ground Truth, and all model predictions.
+     - Live metric score pills under each tile (e.g. `mIoU: 88.5% | mAcc: 93.8% | Boundary F1: 97.2%`).
+     - A full side-by-side **Quantitative Evaluation Table** comparing all models across **mIoU**, **mAcc**, **Boundary IoU**, **Boundary F-score**, **Pixel Accuracy**, and **Dice**.
+  7. Drag the **Synchronized 360° Yaw Slider** from 0° through 180° to 360° to demonstrate seam-free panoramic rotation across all models concurrently.
 - **Narrative:**
-  > *"Launching `run.bat` brings up our native JavaFX desktop suite. We load `sample_panorama.jpg` and attach its corresponding ground truth mask.*
+  > *"Launching `run.bat` brings up our native JavaFX desktop suite. We load `sample_panorama.jpg` and attach its verified ground truth mask.*
   >
-  > *We select **PanoFusion**, our ICVGIP 2026 paper model integrating CLIP, DAN, and SBR-Net MobileSAM. It executes via our `ProcessModelAdapter` as an isolated subprocess using its trained `.pth` checkpoint. Notice that the UI remains completely responsive during inference.*
+  > *With one click on **Run All Models (Side-by-Side)**, our asynchronous coordinator dispatches inference across all enabled models (PanoFusion, OPS Baseline, OmniSAM, and SAM). The UI automatically opens the cross-model comparison view.*
   >
-  > *Once segmented, our quantitative evaluation engine computes Pixel Accuracy, mIoU, and Dice score against the ground truth. Crucially, as I drag this 360° yaw slider, notice how the segmentation mask wraps seamlessly across the 0° and 360° seam without any edge clipping or distortion."*
+  > *Notice the side-by-side tiles and our comprehensive evaluation table computing state-of-the-art boundary-aware metrics: **mIoU**, **mAcc**, **Boundary IoU**, and **Boundary F-score**. Crucially, dragging the synchronized 360° yaw slider wraps all models seamlessly across the seam without any edge artifacts."*
 
 ### Part 4: 29-Megapixel High-Resolution Demo (2:30 – 3:30)
 - **Actions:**
-  1. Click **"Open Image..."** -> Select `H.jpg` (7808×3744, 29 Megapixels).
+  1. Click **"Select 360° Panorama..."** -> Select `H.jpg` (7808×3744, 29 Megapixels).
   2. Show that it loads smoothly without JVM Out-Of-Memory error.
   3. Load `data/ground_truth/H_gt.png`.
   4. Select **"OmniSAM"** -> Run Segmentation.
@@ -99,7 +100,19 @@ Use this exact script and workflow when recording your screen for the final vide
 
 ---
 
-### Q3: How do you handle 29MP panoramas like `H.jpg` without memory exhaustion?
+### Q3: How do you compute Boundary IoU and Boundary F-score?
+> **Answer:**
+> Standard mIoU measures region overlap, which heavily biases toward large background regions (walls, floor, ceiling) and penalizes small boundary errors disproportionately. To rigorously evaluate edge quality in indoor panoramas, our `SegmentationMetrics` module implements morphological boundary metrics:
+> 1. **Boundary Extraction:** We compute the inner boundary band of width $d = \max(1, \text{round}(0.0075 \cdot \text{diagonal}))$ via 8-connected binary erosion with 0-padding: $\text{Band} = M \setminus \text{Erode}(M, d)$.
+> 2. **Boundary IoU:** We compute the intersection and union of the prediction band and ground truth band:
+>    $$\text{Boundary IoU}_c = \frac{|\text{Band}(P_c) \cap \text{Band}(G_c)|}{|\text{Band}(P_c) \cup \text{Band}(G_c)|}$$
+> 3. **Boundary F-score:** We extract the 1-pixel outer edge and perform 4-connected binary dilation by tolerance distance $\tau = d$. Precision and Recall are computed by matching boundary pixels within distance $\tau$:
+>    $$\text{Precision}_c = \frac{|\text{Edge}(P_c) \cap \text{Dilate}(\text{Edge}(G_c), \tau)|}{|\text{Edge}(P_c)|}, \quad \text{Recall}_c = \frac{|\text{Edge}(G_c) \cap \text{Dilate}(\text{Edge}(P_c), \tau)|}{|\text{Edge}(G_c)|}$$
+>    The Boundary F-score is their harmonic mean: $F_1 = \frac{2 \cdot P \cdot R}{P + R}$.
+
+---
+
+### Q4: How do you handle 29MP panoramas like `H.jpg` without memory exhaustion?
 > **Answer:**
 > We addressed this on two fronts:
 > 1. **Header Sanitization:** Proprietary 360° cameras insert vendor markers (e.g., SOF `0xce`) that crash Java's default `ImageIO`. Our `ImageLoaderHelper` invokes an OpenCV fallback bridge that reads any raw stream, normalizes color space, and provides a sanitized buffer.
@@ -107,24 +120,9 @@ Use this exact script and workflow when recording your screen for the final vide
 
 ---
 
-### Q4: How are the quantitative metrics computed?
-> **Answer:**
-> Given prediction mask $P$ and ground truth mask $G$ over valid panoramic pixels $N = W \times H$:
-> 1. **Pixel Accuracy:**
->    $$\text{Accuracy} = \frac{\sum_{i=1}^N \mathbb{I}(P_i = G_i)}{N}$$
-> 2. **Intersection over Union (IoU) per class $c$:**
->    $$\text{IoU}_c = \frac{|P_c \cap G_c|}{|P_c \cup G_c|} = \frac{TP_c}{TP_c + FP_c + FN_c}$$
-> 3. **Mean IoU (mIoU):**
->    $$\text{mIoU} = \frac{1}{|C|} \sum_{c \in C} \text{IoU}_c$$
-> 4. **Dice Coefficient (F1-Score) per class $c$:**
->    $$\text{Dice}_c = \frac{2 \cdot |P_c \cap G_c|}{|P_c| + |G_c|} = \frac{2 \cdot TP_c}{2 \cdot TP_c + FP_c + FN_c}$$
-> All metrics handle classes not present in ground truth gracefully by excluding $0/0$ undefined divisions from the macro average.
-
----
-
 ### Q5: How do you demonstrate adherence to SOLID principles?
 > **Answer:**
-> 1. **Single Responsibility (SRP):** `ProcessModelAdapter` only executes subprocesses; `ResultNormalizer` only parses and validates JSON/PNG formats; `MetricsCalculator` only computes statistical scores; `PanoramaViewPane` only manages view rendering.
+> 1. **Single Responsibility (SRP):** `ProcessModelAdapter` only executes subprocesses; `ResultNormalizer` only parses and validates JSON/PNG formats; `MetricsCalculator` and `SegmentationMetrics` only compute statistical scores; `PanoramaViewPane` only manages view rendering.
 > 2. **Open-Closed Principle (OCP):** Adding a new model requires adding a JSON entry to `config/tools.json`. Zero lines of Java code are modified or recompiled.
 > 3. **Liskov Substitution (LSP):** Both `ProcessModelAdapter` and `HttpModelAdapter` implement the unified `SegmentationTool` interface interchangeably.
 > 4. **Interface Segregation (ISP):** Tool configuration, normalizer contracts, and UI listeners are segregated into lean, focused Java interfaces.
