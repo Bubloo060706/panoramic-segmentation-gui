@@ -3,7 +3,6 @@ package edu.iitm.cs5013.panoramic.gui;
 import edu.iitm.cs5013.panoramic.comparison.EvaluationResult;
 import edu.iitm.cs5013.panoramic.comparison.MetricsCalculator;
 import edu.iitm.cs5013.panoramic.model.SegmentationResult;
-import edu.iitm.cs5013.panoramic.model.SemanticClass;
 import edu.iitm.cs5013.panoramic.visualization.PanoramaImageRenderer;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,7 +16,7 @@ import java.util.*;
 /**
  * Multi-tool visual comparison and quantitative metrics pane.
  * Synchronizes horizontal panoramic inspection across tools and renders evaluation metrics
- * when compatible ground truth is available.
+ * (mIoU, mAcc, Boundary IoU, Boundary F-score, Pixel Accuracy, Dice) when compatible ground truth is available.
  */
 public class ComparisonViewPane extends VBox {
 
@@ -41,11 +40,12 @@ public class ComparisonViewPane extends VBox {
         // Header and Yaw sync bar
         HBox topBar = new HBox(16);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        Label title = new Label("Cross-Model Comparison");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        Label title = new Label("Cross-Model Side-by-Side Comparison");
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e293b;");
 
         Label yawLabel = new Label("Synchronized 360° Yaw:");
-        syncYawSlider.setPrefWidth(160);
+        yawLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
+        syncYawSlider.setPrefWidth(200);
         syncYawSlider.valueProperty().addListener((obs, o, n) -> refreshViews());
 
         topBar.getChildren().addAll(title, new Label("|"), yawLabel, syncYawSlider);
@@ -55,7 +55,7 @@ public class ComparisonViewPane extends VBox {
         scrollPane.setFitToHeight(true);
         scrollPane.setFitToWidth(false);
         scrollPane.setPannable(true);
-        scrollPane.setMinHeight(260);
+        scrollPane.setMinHeight(300);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: #cbd5e1; -fx-border-radius: 6px;");
 
         // Metrics Panel
@@ -86,7 +86,7 @@ public class ComparisonViewPane extends VBox {
         // 1. Original Image Tile
         if (baseImage != null) {
             Image shiftedBase = renderer.renderWithHorizontalOffset(baseImage, yaw);
-            VBox baseTile = createViewerTile("Original 360° Panorama", shiftedBase, "Aspect: 2:1 Equirectangular");
+            VBox baseTile = createViewerTile("Original 360° Panorama", shiftedBase, "Aspect: 2:1 Equirectangular", null);
             comparisonGrid.getChildren().add(baseTile);
         }
 
@@ -94,7 +94,7 @@ public class ComparisonViewPane extends VBox {
         if (groundTruthResult != null && groundTruthResult.isSuccess()) {
             Image gtOverlay = renderer.renderOverlay(baseImage, groundTruthResult, 0.55);
             Image shiftedGt = renderer.renderWithHorizontalOffset(gtOverlay, yaw);
-            VBox gtTile = createViewerTile("Ground Truth Reference", shiftedGt, "Verified Annotations");
+            VBox gtTile = createViewerTile("Ground Truth Reference", shiftedGt, "Verified Annotations", null);
             comparisonGrid.getChildren().add(gtTile);
         }
 
@@ -106,7 +106,13 @@ public class ComparisonViewPane extends VBox {
                 Image shifted = renderer.renderWithHorizontalOffset(overlay, yaw);
                 String sub = String.format("Classes: %d | Time: %d ms",
                         res.getDetectedClasses().size(), res.getExecutionDurationMs());
-                VBox tile = createViewerTile(res.getToolName(), shifted, sub);
+
+                EvaluationResult eval = null;
+                if (groundTruthResult != null && groundTruthResult.isSuccess()) {
+                    eval = metricsCalculator.evaluate(res, groundTruthResult);
+                }
+
+                VBox tile = createViewerTile(res.getToolName(), shifted, sub, eval);
                 comparisonGrid.getChildren().add(tile);
             } else {
                 VBox failTile = createFailedTile(res.getToolName(), res.getErrorMessage());
@@ -115,7 +121,7 @@ public class ComparisonViewPane extends VBox {
         }
     }
 
-    private VBox createViewerTile(String title, Image image, String subtitle) {
+    private VBox createViewerTile(String title, Image image, String subtitle, EvaluationResult eval) {
         VBox box = new VBox(6);
         box.setPrefWidth(380);
         box.setAlignment(Pos.TOP_CENTER);
@@ -133,6 +139,15 @@ public class ComparisonViewPane extends VBox {
         subLabel.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px;");
 
         box.getChildren().addAll(titleLabel, iv, subLabel);
+
+        if (eval != null && eval.isQuantitativeValid()) {
+            Label scoreBadge = new Label(String.format("mIoU: %.1f%%  |  mAcc: %.1f%%  |  Boundary F1: %.1f%%",
+                    eval.getMeanIoUPercent(), eval.getMeanAccPercent(), eval.getBoundaryFScorePercent()));
+            scoreBadge.setStyle("-fx-background-color: #ecfdf5; -fx-text-fill: #065f46; -fx-padding: 3 8 3 8; " +
+                    "-fx-border-color: #a7f3d0; -fx-border-radius: 4; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;");
+            box.getChildren().add(scoreBadge);
+        }
+
         return box;
     }
 
@@ -160,11 +175,18 @@ public class ComparisonViewPane extends VBox {
         metricsPanel.getChildren().add(heading);
 
         if (groundTruthResult == null || !groundTruthResult.isSuccess()) {
-            Label note = new Label("Notice: Quantitative evaluation (mIoU, Pixel Accuracy, Dice/F1) is unavailable because " +
+            Label note = new Label("Notice: Quantitative evaluation (mIoU, mAcc, Boundary IoU/F-score, Pixel Accuracy) is unavailable because " +
                     "no Ground Truth reference mask is currently loaded. Side-by-side visual comparison is active above. " +
-                    "Use 'Load Ground Truth' to compute numerical metrics.");
+                    "Use 'Load Ground Truth Mask...' to compute numerical metrics.");
             note.setStyle("-fx-text-fill: #64748b; -fx-font-style: italic;");
             note.setWrapText(true);
+            metricsPanel.getChildren().add(note);
+            return;
+        }
+
+        if (toolResults.isEmpty()) {
+            Label note = new Label("No segmentation tools executed yet. Click 'Run Segmentation' or 'Run All Models (Side-by-Side)' to evaluate.");
+            note.setStyle("-fx-text-fill: #64748b; -fx-font-style: italic;");
             metricsPanel.getChildren().add(note);
             return;
         }
@@ -176,35 +198,46 @@ public class ComparisonViewPane extends VBox {
         table.setPadding(new Insets(8));
 
         // Table Header
-        table.add(styledHeader("Tool Name"), 0, 0);
-        table.add(styledHeader("Pixel Accuracy"), 1, 0);
-        table.add(styledHeader("Mean IoU (mIoU)"), 2, 0);
-        table.add(styledHeader("Mean Dice (F1)"), 3, 0);
-        table.add(styledHeader("Status"), 4, 0);
+        table.add(styledHeader("Tool / Model"), 0, 0);
+        table.add(styledHeader("mIoU"), 1, 0);
+        table.add(styledHeader("mAcc"), 2, 0);
+        table.add(styledHeader("Boundary IoU"), 3, 0);
+        table.add(styledHeader("Boundary F-score"), 4, 0);
+        table.add(styledHeader("Pixel Accuracy"), 5, 0);
+        table.add(styledHeader("Mean Dice (F1)"), 6, 0);
+        table.add(styledHeader("Status"), 7, 0);
 
         int row = 1;
         for (SegmentationResult pred : toolResults.values()) {
             EvaluationResult eval = metricsCalculator.evaluate(pred, groundTruthResult);
 
-            table.add(new Label(pred.getToolName()), 0, row);
+            Label toolLabel = new Label(pred.getToolName());
+            toolLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            table.add(toolLabel, 0, row);
 
             if (eval.isQuantitativeValid()) {
-                table.add(new Label(String.format("%.2f%%", eval.getPixelAccuracy() * 100)), 1, row);
-                table.add(new Label(String.format("%.4f", eval.getMeanIoU())), 2, row);
-                table.add(new Label(String.format("%.4f", eval.getMeanDice())), 3, row);
+                table.add(new Label(String.format("%.2f%%", eval.getMeanIoUPercent())), 1, row);
+                table.add(new Label(String.format("%.2f%%", eval.getMeanAccPercent())), 2, row);
+                table.add(new Label(String.format("%.2f%%", eval.getBoundaryIoUPercent())), 3, row);
+                table.add(new Label(String.format("%.2f%%", eval.getBoundaryFScorePercent())), 4, row);
+                table.add(new Label(String.format("%.2f%%", eval.getPixelAccuracyPercent())), 5, row);
+                table.add(new Label(String.format("%.4f", eval.getMeanDice())), 6, row);
 
                 Label okBadge = new Label("Calculated");
                 okBadge.getStyleClass().add("status-badge-success");
-                table.add(okBadge, 4, row);
+                table.add(okBadge, 7, row);
             } else {
                 table.add(new Label("N/A"), 1, row);
                 table.add(new Label("N/A"), 2, row);
                 table.add(new Label("N/A"), 3, row);
+                table.add(new Label("N/A"), 4, row);
+                table.add(new Label("N/A"), 5, row);
+                table.add(new Label("N/A"), 6, row);
 
                 Label warnBadge = new Label(eval.getInvalidationReason());
                 warnBadge.setStyle("-fx-text-fill: #b45309; -fx-font-size: 11px;");
                 warnBadge.setWrapText(true);
-                table.add(warnBadge, 4, row);
+                table.add(warnBadge, 7, row);
             }
             row++;
         }
@@ -214,7 +247,7 @@ public class ComparisonViewPane extends VBox {
 
     private Label styledHeader(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-weight: bold; -fx-text-fill: #334155;");
+        l.setStyle("-fx-font-weight: bold; -fx-text-fill: #0f172a; -fx-border-color: transparent transparent #cbd5e1 transparent; -fx-padding: 0 0 4 0;");
         return l;
     }
 }

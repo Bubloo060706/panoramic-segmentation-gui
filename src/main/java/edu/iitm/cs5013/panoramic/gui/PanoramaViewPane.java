@@ -1,5 +1,7 @@
 package edu.iitm.cs5013.panoramic.gui;
 
+import edu.iitm.cs5013.panoramic.comparison.EvaluationResult;
+import edu.iitm.cs5013.panoramic.comparison.MetricsCalculator;
 import edu.iitm.cs5013.panoramic.model.MaskData;
 import edu.iitm.cs5013.panoramic.model.SegmentationResult;
 import edu.iitm.cs5013.panoramic.model.SemanticClass;
@@ -22,7 +24,7 @@ import java.util.List;
 /**
  * Interactive panoramic visualization pane.
  * Renders the 360° equirectangular image, mask overlays, interactive 360° yaw wrap-around rotation,
- * and mouse pixel inspection.
+ * live metrics banner against ground truth, and mouse pixel inspection.
  */
 public class PanoramaViewPane extends VBox {
 
@@ -33,14 +35,17 @@ public class PanoramaViewPane extends VBox {
     }
 
     private final PanoramaImageRenderer renderer = new PanoramaImageRenderer();
+    private final MetricsCalculator metricsCalculator = new MetricsCalculator();
     private final ImageView imageView = new ImageView();
     private final Slider opacitySlider = new Slider(0.0, 1.0, 0.55);
     private final Slider yawSlider = new Slider(0.0, 360.0, 0.0);
     private final Label pixelInfoLabel = new Label("Coordinates: (--, --) | Class: --");
+    private final Label metricsSummaryLabel = new Label();
     private final FlowPane legendPane = new FlowPane();
 
     private Image baseImage;
     private SegmentationResult currentResult;
+    private SegmentationResult groundTruthResult;
     private WritableImage renderedComposite;
     private DisplayMode currentMode = DisplayMode.OVERLAY;
 
@@ -51,6 +56,15 @@ public class PanoramaViewPane extends VBox {
 
         // Controls bar (Mode toggles, Opacity, Yaw rotation)
         HBox controlBar = createControlBar();
+
+        // Metrics Banner when Ground Truth is loaded
+        metricsSummaryLabel.setStyle(
+                "-fx-background-color: #f0fdf4; -fx-text-fill: #166534; -fx-border-color: #bbf7d0; " +
+                "-fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 6 12 6 12; " +
+                "-fx-font-weight: bold; -fx-font-size: 11px;"
+        );
+        metricsSummaryLabel.setVisible(false);
+        metricsSummaryLabel.setManaged(false);
 
         // Image container with scroll and aspect ratio handling
         imageView.setPreserveRatio(true);
@@ -71,7 +85,7 @@ public class PanoramaViewPane extends VBox {
         legendPane.setVgap(6);
         legendPane.setPadding(new Insets(4, 0, 4, 0));
 
-        getChildren().addAll(controlBar, imageHolder, pixelInfoLabel, legendPane);
+        getChildren().addAll(controlBar, metricsSummaryLabel, imageHolder, pixelInfoLabel, legendPane);
     }
 
     private HBox createControlBar() {
@@ -128,10 +142,37 @@ public class PanoramaViewPane extends VBox {
     }
 
     public void setContent(Image baseImage, SegmentationResult result) {
+        setContent(baseImage, result, null);
+    }
+
+    public void setContent(Image baseImage, SegmentationResult result, SegmentationResult groundTruth) {
         this.baseImage = baseImage;
         this.currentResult = result;
+        this.groundTruthResult = groundTruth;
+
+        updateMetricsBanner();
         updateLegend();
         updateRendering();
+    }
+
+    private void updateMetricsBanner() {
+        if (currentResult != null && currentResult.isSuccess() &&
+                groundTruthResult != null && groundTruthResult.isSuccess()) {
+            EvaluationResult eval = metricsCalculator.evaluate(currentResult, groundTruthResult);
+            if (eval.isQuantitativeValid()) {
+                metricsSummaryLabel.setText(String.format(
+                        "Evaluation against Ground Truth:  mIoU: %.2f%%  |  mAcc: %.2f%%  |  Boundary IoU: %.2f%%  |  Boundary F1: %.2f%%  |  Pixel Acc: %.2f%%  |  Dice: %.4f",
+                        eval.getMeanIoUPercent(), eval.getMeanAccPercent(),
+                        eval.getBoundaryIoUPercent(), eval.getBoundaryFScorePercent(),
+                        eval.getPixelAccuracyPercent(), eval.getMeanDice()
+                ));
+                metricsSummaryLabel.setVisible(true);
+                metricsSummaryLabel.setManaged(true);
+                return;
+            }
+        }
+        metricsSummaryLabel.setVisible(false);
+        metricsSummaryLabel.setManaged(false);
     }
 
     private void updateRendering() {

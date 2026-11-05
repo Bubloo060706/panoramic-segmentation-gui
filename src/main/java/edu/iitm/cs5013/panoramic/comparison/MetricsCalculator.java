@@ -7,11 +7,31 @@ import edu.iitm.cs5013.panoramic.model.SemanticClass;
 import java.util.*;
 
 /**
- * Calculates quantitative segmentation evaluation metrics (mIoU, Pixel Accuracy, Dice/F1, Per-class IoU).
+ * Calculates quantitative segmentation evaluation metrics:
+ * <ul>
+ *   <li><b>mIoU:</b> Mean Intersection over Union</li>
+ *   <li><b>mAcc:</b> Mean Class Accuracy</li>
+ *   <li><b>Boundary IoU:</b> Morphological boundary band IoU</li>
+ *   <li><b>Boundary F-score:</b> Precision/Recall harmonic mean on boundaries</li>
+ *   <li><b>Pixel Accuracy:</b> Overall correct pixel ratio</li>
+ *   <li><b>Mean Dice (F1):</b> Macro-averaged Dice coefficient</li>
+ * </ul>
  * Strictly guards against computing invalid metrics when ground truth is missing, dimensions mismatch,
  * or label definitions are incompatible.
  */
 public class MetricsCalculator {
+
+    private final double boundaryDilationRatio;
+    private final int ignoreIndex;
+
+    public MetricsCalculator() {
+        this(0.0075, 255);
+    }
+
+    public MetricsCalculator(double boundaryDilationRatio, int ignoreIndex) {
+        this.boundaryDilationRatio = boundaryDilationRatio;
+        this.ignoreIndex = ignoreIndex;
+    }
 
     /**
      * Evaluates a prediction result against a reference ground-truth result.
@@ -71,14 +91,27 @@ public class MetricsCalculator {
 
         // Collect all distinct classes that appear in either ground truth or prediction
         Set<Integer> activeClasses = new TreeSet<>();
-        for (int l : predLabels) activeClasses.add(l);
-        for (int l : gtLabels) activeClasses.add(l);
+        int maxClassId = 0;
+        for (int l : predLabels) {
+            if (l != ignoreIndex && l >= 0) {
+                activeClasses.add(l);
+                if (l > maxClassId) maxClassId = l;
+            }
+        }
+        for (int l : gtLabels) {
+            if (l != ignoreIndex && l >= 0) {
+                activeClasses.add(l);
+                if (l > maxClassId) maxClassId = l;
+            }
+        }
 
         if (activeClasses.isEmpty()) {
             return EvaluationResult.invalid("No segmentation classes found in masks");
         }
 
+        // Calculate Pixel Accuracy and Dice
         long correctPixels = 0;
+        long validPixels = 0;
         Map<Integer, Long> tpMap = new HashMap<>();
         Map<Integer, Long> fpMap = new HashMap<>();
         Map<Integer, Long> fnMap = new HashMap<>();
@@ -93,52 +126,68 @@ public class MetricsCalculator {
             int p = predLabels[i];
             int g = gtLabels[i];
 
+            if (g == ignoreIndex || g < 0) {
+                continue;
+            }
+
+            validPixels++;
             if (p == g) {
                 correctPixels++;
-                tpMap.put(p, tpMap.get(p) + 1L);
+                if (tpMap.containsKey(p)) {
+                    tpMap.put(p, tpMap.get(p) + 1L);
+                }
             } else {
-                fpMap.put(p, fpMap.get(p) + 1L);
-                fnMap.put(g, fnMap.get(g) + 1L);
+                if (fpMap.containsKey(p)) {
+                    fpMap.put(p, fpMap.get(p) + 1L);
+                }
+                if (fnMap.containsKey(g)) {
+                    fnMap.put(g, fnMap.get(g) + 1L);
+                }
             }
         }
 
-        double pixelAccuracy = (double) correctPixels / totalPixels;
+        double pixelAccuracy = validPixels > 0 ? ((double) correctPixels / validPixels) : 0.0;
 
-        Map<Integer, Double> perClassIoU = new TreeMap<>();
         Map<Integer, Double> perClassDice = new TreeMap<>();
-        double iouSum = 0.0;
         double diceSum = 0.0;
-        int evaluatedClassCount = 0;
+        int evaluatedDiceClasses = 0;
 
         for (int c : activeClasses) {
-            long tp = tpMap.get(c);
-            long fp = fpMap.get(c);
-            long fn = fnMap.get(c);
-            long union = tp + fp + fn;
+            long tp = tpMap.getOrDefault(c, 0L);
+            long fp = fpMap.getOrDefault(c, 0L);
+            long fn = fnMap.getOrDefault(c, 0L);
+            long denom = 2 * tp + fp + fn;
 
-            if (union > 0) {
-                double iou = (double) tp / union;
-                double dice = (double) (2 * tp) / (2 * tp + fp + fn);
-                perClassIoU.put(c, iou);
+            if (denom > 0) {
+                double dice = (double) (2 * tp) / denom;
                 perClassDice.put(c, dice);
-                iouSum += iou;
                 diceSum += dice;
-                evaluatedClassCount++;
+                evaluatedDiceClasses++;
             }
         }
+        double mDice = evaluatedDiceClasses > 0 ? (diceSum / evaluatedDiceClasses) : 0.0;
 
-        double mIoU = evaluatedClassCount > 0 ? (iouSum / evaluatedClassCount) : 0.0;
-        double mDice = evaluatedClassCount > 0 ? (diceSum / evaluatedClassCount) : 0.0;
+        // Run full boundary-aware segmentation metrics
+        int numClasses = Math.max(maxClassId + 1, 21);
+        SegmentationMetrics metrics = new SegmentationMetrics(numClasses, ignoreIndex, boundaryDilationRatio);
+        metrics.update(predLabels, gtLabels, gtMask.getHeight(), gtMask.getWidth());
+        SegmentationMetrics.MetricsSummary summary = metrics.compute();
 
         return new EvaluationResult(
                 true,
                 null,
                 pixelAccuracy,
-                mIoU,
+                summary.mIoU(),
+                summary.mAcc(),
+                summary.boundaryIoU(),
+                summary.boundaryFScore(),
                 mDice,
-                perClassIoU,
+                summary.classIoU(),
+                summary.classAcc(),
+                summary.classBoundaryIoU(),
+                summary.classBoundaryFScore(),
                 perClassDice,
-                totalPixels
+                (int) validPixels
         );
     }
 }

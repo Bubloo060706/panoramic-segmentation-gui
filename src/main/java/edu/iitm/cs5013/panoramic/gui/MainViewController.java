@@ -3,6 +3,8 @@ package edu.iitm.cs5013.panoramic.gui;
 import edu.iitm.cs5013.panoramic.adapter.DeterministicTestAdapter;
 import edu.iitm.cs5013.panoramic.adapter.HttpModelAdapter;
 import edu.iitm.cs5013.panoramic.adapter.ProcessModelAdapter;
+import edu.iitm.cs5013.panoramic.comparison.EvaluationResult;
+import edu.iitm.cs5013.panoramic.comparison.MetricsCalculator;
 import edu.iitm.cs5013.panoramic.config.ExecutionType;
 import edu.iitm.cs5013.panoramic.config.ToolConfig;
 import edu.iitm.cs5013.panoramic.config.ToolRegistry;
@@ -178,8 +180,18 @@ public class MainViewController {
         VBox secTools = new VBox(6);
         Label hdrTools = new Label("3. Select Segmentation Tools");
         hdrTools.getStyleClass().add("section-header");
+
+        HBox quickSelect = new HBox(8);
+        Button btnAll = new Button("Select All");
+        btnAll.setStyle("-fx-font-size: 10px; -fx-padding: 2 8 2 8; -fx-background-color: #f1f5f9; -fx-border-color: #cbd5e1; -fx-border-radius: 4;");
+        btnAll.setOnAction(e -> toolCheckMap.values().forEach(cb -> cb.setSelected(true)));
+        Button btnNone = new Button("Clear All");
+        btnNone.setStyle("-fx-font-size: 10px; -fx-padding: 2 8 2 8; -fx-background-color: #f1f5f9; -fx-border-color: #cbd5e1; -fx-border-radius: 4;");
+        btnNone.setOnAction(e -> toolCheckMap.values().forEach(cb -> cb.setSelected(false)));
+        quickSelect.getChildren().addAll(btnAll, btnNone);
+
         populateToolCheckboxes();
-        secTools.getChildren().addAll(hdrTools, toolCheckboxesBox);
+        secTools.getChildren().addAll(hdrTools, quickSelect, toolCheckboxesBox);
 
         // Section D: Active View Selector (for Tab 1)
         VBox secActive = new VBox(4);
@@ -191,10 +203,15 @@ public class MainViewController {
 
         // Section E: Execution Actions
         VBox secAction = new VBox(8);
-        runButton = new Button("Run Segmentation");
+        runButton = new Button("Run Selected Tool(s)");
         runButton.getStyleClass().add("btn-primary");
         runButton.setMaxWidth(Double.MAX_VALUE);
-        runButton.setOnAction(e -> handleRunSegmentation());
+        runButton.setOnAction(e -> handleRunSegmentation(false));
+
+        Button runAllButton = new Button("Run All Models (Side-by-Side)");
+        runAllButton.setStyle("-fx-background-color: #0284c7; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 7 12 7 12; -fx-background-radius: 6;");
+        runAllButton.setMaxWidth(Double.MAX_VALUE);
+        runAllButton.setOnAction(e -> handleRunSegmentation(true));
 
         progressBar = new ProgressBar(0);
         progressBar.setMaxWidth(Double.MAX_VALUE);
@@ -211,7 +228,7 @@ public class MainViewController {
         errorAlertBox.setVisible(false);
         errorAlertBox.setManaged(false);
 
-        secAction.getChildren().addAll(runButton, progressBar, statusMessageLabel, errorAlertBox);
+        secAction.getChildren().addAll(runButton, runAllButton, progressBar, statusMessageLabel, errorAlertBox);
 
         sidebar.getChildren().addAll(secImage, secGt, secTools, secActive, new Separator(), secAction);
         return sidebar;
@@ -295,7 +312,7 @@ public class MainViewController {
             }
 
             // Update single view
-            singleViewPane.setContent(currentJavaFxImage, null);
+            singleViewPane.setContent(currentJavaFxImage, null, groundTruthResult);
             comparisonViewPane.updateData(currentJavaFxImage, completedResults, groundTruthResult);
             statusMessageLabel.setText("Loaded panorama: " + path.getFileName());
 
@@ -339,6 +356,7 @@ public class MainViewController {
             groundTruthLabel.setText("Loaded: " + gtPath.getFileName() + " (" +
                     groundTruthResult.getWidth() + "x" + groundTruthResult.getHeight() + ")");
             comparisonViewPane.updateData(currentJavaFxImage, completedResults, groundTruthResult);
+            updateActiveSingleView();
             statusMessageLabel.setText("Loaded Ground Truth reference.");
 
         } catch (Exception e) {
@@ -347,11 +365,21 @@ public class MainViewController {
     }
 
     private void handleRunSegmentation() {
+        handleRunSegmentation(false);
+    }
+
+    private void handleRunSegmentation(boolean runAll) {
         clearError();
 
         if (currentImagePath == null) {
             showError("Please load a panoramic image first.");
             return;
+        }
+
+        if (runAll) {
+            for (CheckBox cb : toolCheckMap.values()) {
+                cb.setSelected(true);
+            }
         }
 
         List<SegmentationTool> selected = new ArrayList<>();
@@ -432,6 +460,9 @@ public class MainViewController {
                         statusMessageLabel.setText("Inference aborted due to error");
                     } else {
                         statusMessageLabel.setText("Inference completed for all selected tools.");
+                        if (runAll) {
+                            tabPane.getSelectionModel().select(1); // Switch to Cross-Model Comparison tab
+                        }
                     }
                 }));
     }
@@ -440,7 +471,7 @@ public class MainViewController {
         String selectedToolId = activeToolSelector.getValue();
         if (selectedToolId != null) {
             SegmentationResult res = completedResults.get(selectedToolId);
-            singleViewPane.setContent(currentJavaFxImage, res);
+            singleViewPane.setContent(currentJavaFxImage, res, groundTruthResult);
             if (res != null) {
                 updateDiagnostics(res);
             }
@@ -471,6 +502,14 @@ public class MainViewController {
                 sb.append("  ⚠ ").append(w).append("\n");
             }
         }
+
+        if (groundTruthResult != null && groundTruthResult.isSuccess()) {
+            EvaluationResult eval = new edu.iitm.cs5013.panoramic.comparison.MetricsCalculator()
+                    .evaluate(result, groundTruthResult);
+            sb.append("\n=== QUANTITATIVE EVALUATION (VS GROUND TRUTH) ===\n");
+            sb.append(eval.getFormattedSummary()).append("\n");
+        }
+
         diagnosticsArea.setText(sb.toString());
     }
 

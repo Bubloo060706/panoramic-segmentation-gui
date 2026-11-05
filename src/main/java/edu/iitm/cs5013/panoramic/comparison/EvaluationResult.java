@@ -5,17 +5,27 @@ import java.util.Map;
 
 /**
  * Encapsulates quantitative evaluation metrics between a prediction and ground truth.
+ * Supports mIoU, mAcc, Boundary IoU, Boundary F-score, Pixel Accuracy, and Mean Dice.
  */
 public final class EvaluationResult {
     private final boolean quantitativeValid;
     private final String invalidationReason;
     private final double pixelAccuracy;
     private final double meanIoU;
+    private final double meanAcc;
+    private final double boundaryIoU;
+    private final double boundaryFScore;
     private final double meanDice;
     private final Map<Integer, Double> perClassIoU;
+    private final Map<Integer, Double> perClassAcc;
+    private final Map<Integer, Double> perClassBoundaryIoU;
+    private final Map<Integer, Double> perClassBoundaryFScore;
     private final Map<Integer, Double> perClassDice;
     private final int totalEvaluatedPixels;
 
+    /**
+     * Legacy constructor for backwards compatibility with earlier tests.
+     */
     public EvaluationResult(
             boolean quantitativeValid,
             String invalidationReason,
@@ -25,12 +35,41 @@ public final class EvaluationResult {
             Map<Integer, Double> perClassIoU,
             Map<Integer, Double> perClassDice,
             int totalEvaluatedPixels) {
+        this(quantitativeValid, invalidationReason, pixelAccuracy, meanIoU,
+                pixelAccuracy, meanIoU, meanDice, meanDice,
+                perClassIoU, Map.of(), Map.of(), Map.of(), perClassDice, totalEvaluatedPixels);
+    }
+
+    /**
+     * Full constructor including all standard and boundary-aware metrics.
+     */
+    public EvaluationResult(
+            boolean quantitativeValid,
+            String invalidationReason,
+            double pixelAccuracy,
+            double meanIoU,
+            double meanAcc,
+            double boundaryIoU,
+            double boundaryFScore,
+            double meanDice,
+            Map<Integer, Double> perClassIoU,
+            Map<Integer, Double> perClassAcc,
+            Map<Integer, Double> perClassBoundaryIoU,
+            Map<Integer, Double> perClassBoundaryFScore,
+            Map<Integer, Double> perClassDice,
+            int totalEvaluatedPixels) {
         this.quantitativeValid = quantitativeValid;
         this.invalidationReason = invalidationReason != null ? invalidationReason : "";
         this.pixelAccuracy = pixelAccuracy;
         this.meanIoU = meanIoU;
+        this.meanAcc = meanAcc;
+        this.boundaryIoU = boundaryIoU;
+        this.boundaryFScore = boundaryFScore;
         this.meanDice = meanDice;
         this.perClassIoU = perClassIoU != null ? Collections.unmodifiableMap(perClassIoU) : Collections.emptyMap();
+        this.perClassAcc = perClassAcc != null ? Collections.unmodifiableMap(perClassAcc) : Collections.emptyMap();
+        this.perClassBoundaryIoU = perClassBoundaryIoU != null ? Collections.unmodifiableMap(perClassBoundaryIoU) : Collections.emptyMap();
+        this.perClassBoundaryFScore = perClassBoundaryFScore != null ? Collections.unmodifiableMap(perClassBoundaryFScore) : Collections.emptyMap();
         this.perClassDice = perClassDice != null ? Collections.unmodifiableMap(perClassDice) : Collections.emptyMap();
         this.totalEvaluatedPixels = totalEvaluatedPixels;
     }
@@ -51,8 +90,40 @@ public final class EvaluationResult {
         return pixelAccuracy;
     }
 
+    public double getPixelAccuracyPercent() {
+        return pixelAccuracy * 100.0;
+    }
+
     public double getMeanIoU() {
         return meanIoU;
+    }
+
+    public double getMeanIoUPercent() {
+        return meanIoU * 100.0;
+    }
+
+    public double getMeanAcc() {
+        return meanAcc;
+    }
+
+    public double getMeanAccPercent() {
+        return meanAcc * 100.0;
+    }
+
+    public double getBoundaryIoU() {
+        return boundaryIoU;
+    }
+
+    public double getBoundaryIoUPercent() {
+        return boundaryIoU * 100.0;
+    }
+
+    public double getBoundaryFScore() {
+        return boundaryFScore;
+    }
+
+    public double getBoundaryFScorePercent() {
+        return boundaryFScore * 100.0;
     }
 
     public double getMeanDice() {
@@ -61,6 +132,18 @@ public final class EvaluationResult {
 
     public Map<Integer, Double> getPerClassIoU() {
         return perClassIoU;
+    }
+
+    public Map<Integer, Double> getPerClassAcc() {
+        return perClassAcc;
+    }
+
+    public Map<Integer, Double> getPerClassBoundaryIoU() {
+        return perClassBoundaryIoU;
+    }
+
+    public Map<Integer, Double> getPerClassBoundaryFScore() {
+        return perClassBoundaryFScore;
     }
 
     public Map<Integer, Double> getPerClassDice() {
@@ -77,13 +160,19 @@ public final class EvaluationResult {
         }
         return String.format(
                 "Evaluation Metrics:\n" +
-                "• Pixel Accuracy: %.2f%%\n" +
-                "• Mean IoU (mIoU): %.4f (%.2f%%)\n" +
-                "• Mean Dice (F1):  %.4f\n" +
-                "• Evaluated Classes: %d\n" +
-                "• Total Pixels: %d",
+                "• Mean IoU (mIoU):       %.2f%% (%.4f)\n" +
+                "• Mean Accuracy (mAcc):  %.2f%%\n" +
+                "• Boundary IoU:          %.2f%%\n" +
+                "• Boundary F-score (F1): %.2f%%\n" +
+                "• Pixel Accuracy:        %.2f%%\n" +
+                "• Mean Dice:             %.4f\n" +
+                "• Evaluated Classes:     %d\n" +
+                "• Total Evaluated Pixels:%d",
+                meanIoU * 100.0, meanIoU,
+                meanAcc * 100.0,
+                boundaryIoU * 100.0,
+                boundaryFScore * 100.0,
                 pixelAccuracy * 100.0,
-                meanIoU, meanIoU * 100.0,
                 meanDice,
                 perClassIoU.size(),
                 totalEvaluatedPixels
