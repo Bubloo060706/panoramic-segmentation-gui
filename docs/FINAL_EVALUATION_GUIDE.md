@@ -8,7 +8,7 @@
 
 | Deliverable | Status | Location / Artifact |
 | :--- | :---: | :--- |
-| **Real Model Checkpoints** | ✅ Verified | `PAI Segmentation Checkpoints/`<br>• `PanoFusion/best_mIoU_iter_141500.pth` (669.5 MB)<br>• `OPS Baseline/best_mIoU_iter_23000.pth` (610.2 MB)<br>• `OmniSAM/best_sam2_s_iou_41.18.pth` (177.7 MB)<br>• `SAM/sam_vit_b_01ec64.pth` (357.7 MB) |
+| **Real Model Checkpoints** | ✅ Verified | `PAI Segmentation Checkpoints/`<br>• `PanoFusion/best_mIoU_iter_141500.pth` (702.0 MB)<br>• `OPS Baseline/best_mIoU_iter_23000.pth` (639.8 MB)<br>• `OmniSAM/best_sam2_s_iou_41.18.pth` (186.3 MB)<br>• `Segformer/model.safetensors` (256.1 MB, HuggingFace Safetensors)<br>• `Pretrained SAM  + CNN tracking/classifier _vplab.pth` (44.8 MB, VPLab CNN) |
 | **Ground Truth Suite** | ✅ Verified | `data/ground_truth/`<br>• `sample_panorama_gt.png` & `sample_panorama_gt.json` (800×400)<br>• `H_gt.png` & `H_gt.json` (7808×3744 29MP panorama)<br>• `README.md` paired evaluation guide |
 | **State-of-the-Art Metrics Engine** | ✅ Verified | [`SegmentationMetrics.java`](file:///c:/Users/balaj/Documents/PAI%20Project/src/main/java/edu/iitm/cs5013/panoramic/comparison/SegmentationMetrics.java)<br>• **mIoU** (Mean IoU)<br>• **mAcc** (Mean Class Accuracy)<br>• **Boundary IoU** (Morphological boundary band IoU)<br>• **Boundary F-score** (Boundary precision/recall F1-score)<br>• **Pixel Accuracy & Dice** |
 | **Extensibility & Developer Guide** | ✅ Verified | [`docs/DEVELOPER_GUIDE.md`](file:///c:/Users/balaj/Documents/PAI%20Project/docs/DEVELOPER_GUIDE.md) (Complete guide for adding PyTorch/REST tools with zero Java recompilation) |

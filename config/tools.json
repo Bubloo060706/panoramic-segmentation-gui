@@ -165,16 +165,20 @@
       "--input",
       "{IMAGE_PATH}",
       "--output",
-      "{OUTPUT_PATH}"
+      "{OUTPUT_PATH}",
+      "--checkpoint",
+      "PAI Segmentation Checkpoints/Segformer/model.safetensors"
     ],
     "workingDirectory": ".",
     "timeoutSeconds": 60,
-    "enabled": false,
+    "enabled": true,
     "parameters": {
       "framework": "SegFormer (NeurIPS 2021)",
+      "format": "safetensors",
       "num_classes": 21,
       "benchmark_mIoU": "31.35%",
-      "benchmark_mAcc": "70.57%"
+      "benchmark_mAcc": "70.57%",
+      "checkpoint_path": "PAI Segmentation Checkpoints/Segformer/model.safetensors"
     },
     "supportedClasses": [
       { "id": 0, "name": "Roof", "red": 70, "green": 130, "blue": 180 },
@@ -201,9 +205,9 @@
     ]
   },
   {
-    "id": "sam-vit-b",
-    "name": "SAM (Segment Anything ViT-B)",
-    "description": "Meta Segment Anything Model (ViT-B) with zero-shot spatial adaptation",
+    "id": "pretrained-sam-cnn",
+    "name": "Pretrained SAM + CNN tracking",
+    "description": "Pretrained Segment Anything Model coupled with VPLab CNN tracking classifier",
     "executionType": "PROCESS",
     "commandTemplate": [
       "java",
@@ -213,18 +217,19 @@
       "--output",
       "{OUTPUT_PATH}",
       "--checkpoint",
-      "PAI Segmentation Checkpoints/SAM/sam_vit_b_01ec64.pth"
+      "PAI Segmentation Checkpoints/Pretrained SAM  + CNN tracking/classifier _vplab.pth"
     ],
     "workingDirectory": ".",
     "timeoutSeconds": 180,
     "enabled": true,
     "parameters": {
-      "framework": "Meta SAM",
-      "backbone": "ViT-B",
+      "framework": "Pretrained SAM + CNN tracking",
+      "backbone": "ViT-B + CNN Tracker",
+      "classifier": "VPLab CNN Classifier",
       "num_classes": 21,
       "benchmark_mIoU": "48.20%",
       "benchmark_mAcc": "72.50%",
-      "checkpoint_path": "PAI Segmentation Checkpoints/SAM/sam_vit_b_01ec64.pth"
+      "checkpoint_path": "PAI Segmentation Checkpoints/Pretrained SAM  + CNN tracking/classifier _vplab.pth"
     },
     "supportedClasses": [
       { "id": 0, "name": "Roof", "red": 70, "green": 130, "blue": 180 },

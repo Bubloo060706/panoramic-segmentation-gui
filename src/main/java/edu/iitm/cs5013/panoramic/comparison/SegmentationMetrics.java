@@ -359,3 +359,4 @@ public class SegmentationMetrics {
         public double boundaryFScorePercent() { return boundaryFScore * 100.0; }
     }
 }
+
