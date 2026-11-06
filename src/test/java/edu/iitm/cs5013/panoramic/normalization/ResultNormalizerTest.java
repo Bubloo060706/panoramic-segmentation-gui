@@ -108,5 +108,18 @@ class ResultNormalizerTest {
             assertEquals(800, mask.getWidth());
             assertEquals(400, mask.getHeight());
         }
+
+        Path userGt = Path.of("data/ground_truth/user_sample_panorama_gt.png");
+        if (java.nio.file.Files.exists(userGt)) {
+            MaskData mask = normalizer.loadMaskFromImageFile(userGt, sampleConfig);
+            assertNotNull(mask);
+            assertEquals(1024, mask.getWidth());
+            assertEquals(334, mask.getHeight());
+            java.util.Set<Integer> unique = new java.util.HashSet<>();
+            for (int l : mask.getLabels()) unique.add(l);
+            System.out.println("User GT unique classes: " + unique);
+            assertTrue(unique.contains(8), "Should contain floor (8)");
+            assertTrue(unique.contains(5), "Should contain wall (5)");
+        }
     }
 }

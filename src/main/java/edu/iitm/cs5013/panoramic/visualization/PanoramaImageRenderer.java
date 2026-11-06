@@ -3,6 +3,7 @@ package edu.iitm.cs5013.panoramic.visualization;
 import edu.iitm.cs5013.panoramic.model.MaskData;
 import edu.iitm.cs5013.panoramic.model.SegmentationResult;
 import edu.iitm.cs5013.panoramic.model.SemanticClass;
+import edu.iitm.cs5013.panoramic.normalization.ResultNormalizer;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
@@ -39,7 +40,7 @@ public class PanoramaImageRenderer {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int label = mask.getLabel(x, y);
-                int argb = palette.getOrDefault(label, 0xFF808080);
+                int argb = (label == 255) ? 0xFF000000 : palette.getOrDefault(label, 0xFF808080);
                 writer.setArgb(x, y, argb);
             }
         }
@@ -84,8 +85,15 @@ public class PanoramaImageRenderer {
             for (int x = 0; x < width; x++) {
                 int maskX = Math.min((int) (x * scaleX), mask.getWidth() - 1);
                 int label = mask.getLabel(maskX, maskY);
-                int[] maskRgb = palette.getOrDefault(label, new int[]{128, 128, 128});
                 int baseArgb = baseReader.getArgb(x, y);
+
+                if (label == 255 || !palette.containsKey(label)) {
+                    // Ignore index retains the unblemished original panorama pixel
+                    writer.setArgb(x, y, baseArgb);
+                    continue;
+                }
+
+                int[] maskRgb = palette.get(label);
 
                 int baseR = (baseArgb >> 16) & 0xFF;
                 int baseG = (baseArgb >> 8) & 0xFF;
@@ -140,7 +148,13 @@ public class PanoramaImageRenderer {
 
     private Map<Integer, Integer> buildIntArgbPalette(SegmentationResult result) {
         Map<Integer, Integer> palette = new HashMap<>();
-        if (result.getDetectedClasses() != null) {
+        // Pre-populate with official VPLab palette colors as default
+        for (int i = 0; i < ResultNormalizer.DEFAULT_VPLAB_PALETTE.length; i++) {
+            int[] c = ResultNormalizer.DEFAULT_VPLAB_PALETTE[i];
+            int argb = (0xFF << 24) | (c[0] << 16) | (c[1] << 8) | c[2];
+            palette.put(i, argb);
+        }
+        if (result != null && result.getDetectedClasses() != null) {
             for (SemanticClass sc : result.getDetectedClasses()) {
                 int argb = (0xFF << 24) | (sc.getRed() << 16) | (sc.getGreen() << 8) | sc.getBlue();
                 palette.put(sc.getId(), argb);
@@ -151,7 +165,11 @@ public class PanoramaImageRenderer {
 
     private Map<Integer, int[]> buildIntRgbPalette(SegmentationResult result) {
         Map<Integer, int[]> palette = new HashMap<>();
-        if (result.getDetectedClasses() != null) {
+        // Pre-populate with official VPLab palette colors as default
+        for (int i = 0; i < ResultNormalizer.DEFAULT_VPLAB_PALETTE.length; i++) {
+            palette.put(i, ResultNormalizer.DEFAULT_VPLAB_PALETTE[i]);
+        }
+        if (result != null && result.getDetectedClasses() != null) {
             for (SemanticClass sc : result.getDetectedClasses()) {
                 palette.put(sc.getId(), new int[]{sc.getRed(), sc.getGreen(), sc.getBlue()});
             }

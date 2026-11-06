@@ -19,7 +19,8 @@ def parse_args():
     parser.add_argument("--input", required=True, help="Path to input panoramic image")
     parser.add_argument("--output", required=True, help="Path to write JSON output")
     parser.add_argument("--checkpoint", default=DEFAULT_CKPT, help="Path to model.safetensors")
-    return parser.parse_args()
+    args, _ = parser.parse_known_args()
+    return args
 
 def main():
     args = parse_args()

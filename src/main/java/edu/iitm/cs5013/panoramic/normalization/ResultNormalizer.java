@@ -176,6 +176,13 @@ public class ResultNormalizer {
         }
     }
 
+    public static final String[] DEFAULT_VPLAB_CLASS_NAMES = {
+        "Roof", "Bed", "Obstructions", "Refrigerator", "Phone", "Wall",
+        "Furniture", "Electronics", "Floor", "Monitor", "Cabinet", "Door",
+        "Curtain", "Pillow", "Window", "Misc.", "Chair", "Table", "Boxes",
+        "Bag", "Bottles"
+    };
+
     public static final int[][] DEFAULT_VPLAB_PALETTE = {
         {153, 51, 0},     // 0: roof
         {0, 142, 64},     // 1: bed
@@ -234,42 +241,55 @@ public class ResultNormalizer {
 
             // Check if image is an indexed or grayscale raster with direct class IDs
             boolean isDirectIndexed = false;
-            if (img.getType() == BufferedImage.TYPE_BYTE_GRAY || img.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+            if (img.getRaster().getNumBands() == 1 ||
+                img.getType() == BufferedImage.TYPE_BYTE_GRAY ||
+                img.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
                 isDirectIndexed = true;
-            }
-
-            if (isDirectIndexed) {
-                var raster = img.getRaster();
-                for (int y = 0; y < h; y++) {
-                    int offset = y * w;
-                    for (int x = 0; x < w; x++) {
-                        labels[offset + x] = raster.getSample(x, y, 0);
-                    }
-                }
             } else {
-                // Check if the RGB data contains direct class IDs (e.g. grayscale encoded as RGB)
-                boolean allSmallValues = true;
-                for (int y = 0; y < Math.min(h, 20) && allSmallValues; y++) {
-                    for (int x = 0; x < Math.min(w, 20); x++) {
+                // Check if the image channels are equal (grayscale encoded in RGB/ARGB)
+                // Sample points uniformly across the entire image
+                int grayMatches = 0;
+                int validClassMatches = 0;
+                int sampleCount = 0;
+                int stepY = Math.max(1, h / 20);
+                int stepX = Math.max(1, w / 20);
+                for (int y = 0; y < h; y += stepY) {
+                    for (int x = 0; x < w; x += stepX) {
+                        sampleCount++;
                         int rgb = img.getRGB(x, y);
                         int r = (rgb >> 16) & 0xFF;
                         int g = (rgb >> 8) & 0xFF;
                         int b = rgb & 0xFF;
-                        if ((r != g || g != b) || (r > 21 && r != 255)) {
-                            allSmallValues = false;
-                            break;
+                        if (r == g && g == b) {
+                            grayMatches++;
+                            if (r <= 21 || r == 255) {
+                                validClassMatches++;
+                            }
                         }
                     }
                 }
+                if (sampleCount > 0 && ((double) grayMatches / sampleCount >= 0.75 || (double) validClassMatches / sampleCount >= 0.65)) {
+                    isDirectIndexed = true;
+                }
+            }
 
-                if (allSmallValues) {
-                    for (int y = 0; y < h; y++) {
-                        int offset = y * w;
-                        for (int x = 0; x < w; x++) {
-                            labels[offset + x] = img.getRGB(x, y) & 0xFF;
+            if (isDirectIndexed) {
+                var raster = img.getRaster();
+                boolean useRaster = raster.getNumBands() == 1;
+                for (int y = 0; y < h; y++) {
+                    int offset = y * w;
+                    for (int x = 0; x < w; x++) {
+                        int val = useRaster ? raster.getSample(x, y, 0) : (img.getRGB(x, y) & 0xFF);
+                        if (val <= 20 || val == 255) {
+                            labels[offset + x] = val;
+                        } else if (val >= 250) {
+                            labels[offset + x] = 255;
+                        } else {
+                            labels[offset + x] = Math.min(val, 20);
                         }
                     }
-                } else {
+                }
+            } else {
                     // RGB Color Mask: match nearest color in palette
                     for (int y = 0; y < h; y++) {
                         int offset = y * w;
@@ -299,10 +319,8 @@ public class ResultNormalizer {
                         }
                     }
                 }
-            }
-
-            return new MaskData(w, h, labels);
-        } catch (IOException e) {
+                return new MaskData(w, h, labels);
+            } catch (IOException e) {
             throw new NormalizationException("IO error reading mask image: " + maskPath, e);
         }
     }

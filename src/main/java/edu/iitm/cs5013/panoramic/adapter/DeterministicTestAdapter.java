@@ -49,7 +49,9 @@ public class DeterministicTestAdapter implements SegmentationAdapter<MaskData> {
                         new SemanticClass(1, "Wall", 220, 190, 140),
                         new SemanticClass(2, "Floor", 100, 100, 100),
                         new SemanticClass(3, "Window", 60, 220, 180),
-                        new SemanticClass(4, "WrapAroundObject", 240, 50, 50)
+                        new SemanticClass(4, "WrapAroundObject", 240, 50, 50),
+                        new SemanticClass(5, "Wall", 19, 27, 172),
+                        new SemanticClass(8, "Floor", 164, 244, 252)
                 )
         );
         this.simulateFailure = simulateFailure;
@@ -110,9 +112,9 @@ public class DeterministicTestAdapter implements SegmentationAdapter<MaskData> {
                 if (y < ceilingLimit) {
                     labels[idx] = 0; // Ceiling
                 } else if (y >= floorLimit) {
-                    labels[idx] = 2; // Floor
+                    labels[idx] = 8; // Floor (VPLab class 8)
                 } else {
-                    labels[idx] = 1; // Wall
+                    labels[idx] = 5; // Wall (VPLab class 5)
                 }
             }
         }

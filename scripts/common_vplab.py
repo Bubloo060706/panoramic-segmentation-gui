@@ -84,12 +84,12 @@ def save_segmentation_result(output_path, pred_mask, start_time):
         }
     }
     
-    # Write JSON output
+    # Write JSON output compactly for instant I/O
     out_dir = os.path.dirname(output_path)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(out_dict, f, indent=2)
+        json.dump(out_dict, f)
     
     print(f"Inference completed in {elapsed_ms}ms. Detected {len(detected_classes)} classes. Saved to {output_path}")
 

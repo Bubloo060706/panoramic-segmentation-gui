@@ -345,10 +345,28 @@ public class MainViewController {
                 ToolConfig dummyConfig = new ToolConfig("ground-truth", "Ground Truth", "",
                         ExecutionType.MOCK, List.of(), "", "", 10L, true, null, null);
                 MaskData mask = normalizer.loadMaskFromImageFile(gtPath, dummyConfig);
+                int[] rawLabels = mask.getRawLabels();
+                Map<Integer, Long> classCounts = new HashMap<>();
+                for (int l : rawLabels) {
+                    if (l >= 0 && l < ResultNormalizer.DEFAULT_VPLAB_PALETTE.length) {
+                        classCounts.put(l, classCounts.getOrDefault(l, 0L) + 1);
+                    }
+                }
+                List<SemanticClass> gtClasses = new ArrayList<>();
+                for (Map.Entry<Integer, Long> entry : classCounts.entrySet()) {
+                    int cid = entry.getKey();
+                    int[] rgb = ResultNormalizer.DEFAULT_VPLAB_PALETTE[cid];
+                    String name = (cid >= 0 && cid < ResultNormalizer.DEFAULT_VPLAB_CLASS_NAMES.length)
+                            ? ResultNormalizer.DEFAULT_VPLAB_CLASS_NAMES[cid]
+                            : "Class_" + cid;
+                    gtClasses.add(new SemanticClass(cid, name, rgb[0], rgb[1], rgb[2], entry.getValue(), 1.0));
+                }
+
                 this.groundTruthResult = new SegmentationResult.Builder()
                         .toolId("ground-truth")
                         .toolName("Ground Truth Reference")
                         .maskData(mask)
+                        .detectedClasses(gtClasses)
                         .dimensions(mask.getWidth(), mask.getHeight())
                         .build();
             }
