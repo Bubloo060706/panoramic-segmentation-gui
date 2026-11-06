@@ -32,22 +32,22 @@ This directory contains verified ground-truth reference masks and canonical anno
 
 ---
 
-## 3. Label Taxonomy (Ind-PanSeg 21 Classes)
+## 3. Label Taxonomy & Color Mapping (Ind-PanSeg / VPLab 21 Classes)
 
-All ground truth masks strictly adhere to Table 2 of the *PanoFusion: Boundary-Aware Vision-Language Segmentation for Stitched Indoor Panoramas* (ICVGIP 2026) paper:
+All ground truth masks strictly adhere to Table 2 of the *PanoFusion: Boundary-Aware Vision-Language Segmentation for Stitched Indoor Panoramas* (ICVGIP 2026) paper and the authoritative VPLab dataset color palette stored directly inside the model checkpoint metadata:
 
 ```
- 0: Roof          (70, 130, 180)     11: Door         (255, 140, 0)
- 1: Bed           (147, 112, 219)    12: Curtain      (218, 112, 214)
- 2: Obstruction   (128, 128, 128)    13: Pillow       (255, 182, 193)
- 3: Refrigerator  (220, 20, 60)      14: Window       (0, 206, 209)
- 4: Phone         (255, 20, 147)     15: Misc.        (169, 169, 169)
- 5: Wall          (245, 222, 179)    16: Chair        (255, 215, 0)
- 6: Furniture     (210, 105, 30)     17: Table        (160, 82, 45)
- 7: Electronics   (0, 191, 255)      18: Boxes        (210, 180, 140)
- 8: Floor         (139, 69, 19)      19: Bag          (255, 105, 180)
- 9: Monitor       (0, 255, 255)      20: Bottles      (50, 205, 50)
-10: Cabinet       (205, 133, 63)
+ 0: Roof          (153,  51,   0)     11: Door         (  0, 204, 153)
+ 1: Bed           (  0, 142,  64)     12: Curtain      (255,  51, 153)
+ 2: Obstructions  (255,   0,   0)     13: Pillow       (102,   0, 102)
+ 3: Refrigerator  ( 37, 150, 190)     14: Window       (220, 142, 205)
+ 4: Phone         (240, 200,  60)     15: Misc.        (218, 240,  19)
+ 5: Wall          ( 19,  27, 172)     16: Chair        ( 45,   0, 246)
+ 6: Furniture     (  0, 255,   0)     17: Table        (255, 255, 153)
+ 7: Electronics   (150,  50, 145)     18: Boxes        (160, 169,  94)
+ 8: Floor         (164, 244, 252)     19: Bag          (123,   0, 246)
+ 9: Monitor       (153, 102,   0)     20: Bottles      (255, 102,   0)
+10: Cabinet       (146, 146, 146)    255: Ignore Index (boundary/unlabeled)
 ```
 
 ---

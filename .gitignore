@@ -26,5 +26,6 @@ PAI Segmentation Checkpoints/
 *.onnx
 *.pt
 *.bin
+*.safetensors
 maven_proxy.py
 H.jpg

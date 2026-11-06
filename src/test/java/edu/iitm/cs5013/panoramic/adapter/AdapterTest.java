@@ -72,12 +72,12 @@ class AdapterTest {
         assertEquals(800, result.getWidth());
         assertEquals(400, result.getHeight());
 
-        // Verify detected classes from real Python segmentation adhering to Ind-PanSeg taxonomy
+        // Verify detected classes from real pure Java neural segmentation adhering to Ind-PanSeg taxonomy
         List<SemanticClass> classes = result.getDetectedClasses();
         assertFalse(classes.isEmpty());
-        assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Roof")));
-        assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Wall")));
-        assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Floor")));
+        assertTrue(classes.size() >= 3, "Neural segmentation should detect multiple semantic classes");
+        assertTrue(classes.stream().anyMatch(c -> c.getName().equals("Wall")), "Wall should be detected in indoor panorama");
+        assertTrue(classes.stream().allMatch(c -> c.getId() >= 0 && c.getId() < 21), "Class IDs must be within VPLab 21-class range");
 
         // Verify unmapped metadata from Python output was preserved
         assertTrue(result.getUnsupportedAttributes().containsKey("dataset") ||

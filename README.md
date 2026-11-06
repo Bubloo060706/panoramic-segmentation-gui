@@ -4,7 +4,7 @@
 [![JavaFX](https://img.shields.io/badge/JavaFX-21-blue.svg)](https://openjfx.io/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-red.svg)](https://maven.apache.org/)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/Tests-49%20Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-51%20Passed-brightgreen.svg)]()
 
 **Course:** CS5013 – Programming with AI  
 **Author:** Rathan Balaji P R (Roll No. CS26E009) – Department of Computer Science & Engineering, IIT Madras  
@@ -40,10 +40,34 @@ This implementation integrates and benchmarks the models from the research paper
 | `segformer-baseline` | **SegFormer [Xie et al., NeurIPS 2021]**<br>Transformer-based perspective baseline fine-tuned with focal loss | `PAI Segmentation Checkpoints/Segformer/model.safetensors`<br>(HuggingFace Safetensors, 256.1 MB) | 31.35% | 70.57% |
 | `pretrained-sam-cnn` | **Pretrained SAM + CNN tracking**<br>Pretrained Segment Anything Model coupled with VPLab CNN tracking classifier | `PAI Segmentation Checkpoints/Pretrained SAM  + CNN tracking/classifier _vplab.pth`<br>(VPLab Classifier `.pth`, 44.8 MB) | 48.20% | 72.50% |
 
-### Ind-PanSeg Semantic Taxonomy (21 Classes, Table 2 in Paper):
-- **Structural Classes:** `Roof` (0), `Wall` (5), `Floor` (8), `Door` (11), `Curtain` (12), `Window` (14), `Obstruction` (2), `Misc.` (15)
-- **Object-Level Classes:** `Bed` (1), `Refrigerator` (3), `Phone` (4), `Furniture` (6), `Electronics` (7), `Monitor` (9), `Cabinet` (10), `Pillow` (13), `Chair` (16), `Table` (17), `Boxes` (18), `Bag` (19), `Bottles` (20)
-- **Ignore Index:** `255` (unlabeled/invalid/stitched seam boundary regions)
+### Ind-PanSeg Authoritative Semantic Taxonomy & Color Palette (21 Classes)
+
+Extracted directly from the training dataset metadata in `d['meta']['dataset_meta']`:
+
+| Class ID | Semantic Class | Category | RGB Color | Hex Code | Swatch Preview |
+|:---:|:---|:---|:---:|:---:|:---:|
+| **0** | `Roof` | Structural | `[153, 51, 0]` | `#993300` | 🟫 Brown |
+| **1** | `Bed` | Object | `[0, 142, 64]` | `#008E40` | 🟩 Forest Green |
+| **2** | `Obstructions` | Structural | `[255, 0, 0]` | `#FF0000` | 🟥 Red |
+| **3** | `Refrigerator` | Appliance | `[37, 150, 190]` | `#2596BE` | 🟦 Cyan/Teal |
+| **4** | `Phone` | Object | `[240, 200, 60]` | `#F0C83C` | 🟨 Amber Gold |
+| **5** | `Wall` | Structural | `[19, 27, 172]` | `#131BAC` | 🟦 Deep Blue |
+| **6** | `Furniture` | Object | `[0, 255, 0]` | `#00FF00` | 🟩 Pure Green |
+| **7** | `Electronics` | Appliance | `[150, 50, 145]` | `#963291` | 🟪 Purple Magenta |
+| **8** | `Floor` | Structural | `[164, 244, 252]` | `#A4F4FC` | 🧊 Light Cyan |
+| **9** | `Monitor` | Appliance | `[153, 102, 0]` | `#996600` | 🟤 Ochre Brown |
+| **10** | `Cabinet` | Storage | `[146, 146, 146]` | `#929292` | ⬜ Gray |
+| **11** | `Door` | Structural | `[0, 204, 153]` | `#00CC99` | 🟩 Mint Emerald |
+| **12** | `Curtain` | Structural | `[255, 51, 153]` | `#FF3399` | 🌸 Hot Pink |
+| **13** | `Pillow` | Object | `[102, 0, 102]` | `#660066` | 🟣 Dark Violet |
+| **14** | `Window` | Structural | `[220, 142, 205]` | `#DC8ECD` | 🪻 Lilac |
+| **15** | `Misc.` | Structural | `[218, 240, 19]` | `#DAF013` | 🟡 Lime Yellow |
+| **16** | `Chair` | Furniture | `[45, 0, 246]` | `#2D00F6` | 🟦 Indigo Blue |
+| **17** | `Table` | Furniture | `[255, 255, 153]` | `#FFFF99` | 🟨 Pale Yellow |
+| **18** | `Boxes` | Storage | `[160, 169, 94]` | `#A0A95E` | 🫒 Olive Gray |
+| **19** | `Bag` | Object | `[123, 0, 246]` | `#7B00F6` | 🟪 Violet |
+| **20** | `Bottles` | Object | `[255, 102, 0]` | `#FF6600` | 🟧 Orange |
+| **255** | `Ignore / Unlabeled` | Boundary / Seam | `[0, 0, 0]` | `#000000` | ⬛ Black (Excluded from mIoU/mAcc) |
 
 ---
 
@@ -98,7 +122,7 @@ This implementation integrates and benchmarks the models from the research paper
 ### Module Split
 - **`model`:** Core data structures (`SegmentationRequest`, `SegmentationResult`, `MaskData`, `SemanticClass`, `ToolMetadata`, `ExecutionStatus`).
 - **`segmentation`:** The universal `SegmentationTool` contract.
-- **`adapter`:** Adapter implementations (`SegmentationAdapter`, `ProcessModelAdapter`, `HttpModelAdapter`, `DeterministicTestAdapter`).
+- **`adapter`:** Adapter implementations (`SegmentationAdapter`, `ProcessModelAdapter`, `HttpModelAdapter`).
 - **`config`:** Jackson JSON loader (`ToolConfigurationLoader`) and dynamic `ToolRegistry` discovering tools via `config/tools.json`.
 - **`execution`:** External process boundary (`ProcessExecutor`) and HTTP boundary (`HttpExecutor`).
 - **`normalization`:** Standardized result normalization (`ResultNormalizer`, `NormalizationException`).
@@ -131,7 +155,7 @@ On Windows, simply run:
 *(Automatically resolves OpenJFX and Jackson dependencies via `%USERPROFILE%\.m2` and boots the application).*
 
 ### 4.2 Running Automated Tests
-Execute the complete test suite (**49 automated tests** covering unit, boundary, metrics, and end-to-end workflows):
+Execute the complete test suite (**51 automated tests** covering unit, boundary, checkpoint parsing, metrics, and end-to-end workflows):
 ```powershell
 .\mvnw.cmd test
 ```

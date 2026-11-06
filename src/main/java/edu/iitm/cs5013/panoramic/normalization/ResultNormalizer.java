@@ -176,8 +176,34 @@ public class ResultNormalizer {
         }
     }
 
+    public static final int[][] DEFAULT_VPLAB_PALETTE = {
+        {153, 51, 0},     // 0: roof
+        {0, 142, 64},     // 1: bed
+        {255, 0, 0},      // 2: obstructions
+        {37, 150, 190},   // 3: refrigerator
+        {240, 200, 60},   // 4: phone
+        {19, 27, 172},    // 5: wall
+        {0, 255, 0},      // 6: furniture
+        {150, 50, 145},   // 7: electronics
+        {164, 244, 252},  // 8: floor
+        {153, 102, 0},    // 9: monitor
+        {146, 146, 146},  // 10: cabinet
+        {0, 204, 153},    // 11: door
+        {255, 51, 153},   // 12: curtain
+        {102, 0, 102},    // 13: pillow
+        {220, 142, 205},  // 14: window
+        {218, 240, 19},   // 15: misc
+        {45, 0, 246},     // 16: chair
+        {255, 255, 153},  // 17: table
+        {160, 169, 94},   // 18: boxes
+        {123, 0, 246},    // 19: bag
+        {255, 102, 0}     // 20: bottles
+    };
+
     /**
-     * Loads a mask from a grayscale or color image file.
+     * Loads a mask from a grayscale, indexed, or RGB color image file.
+     * Accurately distinguishes between direct class ID index masks (values 0..20, 255)
+     * and RGB palette color masks (matching against the official VPLab palette).
      */
     public MaskData loadMaskFromImageFile(Path maskPath, ToolConfig toolConfig) throws NormalizationException {
         if (!Files.exists(maskPath)) {
@@ -194,16 +220,83 @@ public class ResultNormalizer {
             int h = img.getHeight();
             int[] labels = new int[w * h];
 
-            if (img.getType() == BufferedImage.TYPE_BYTE_GRAY && img.getRaster().getDataBuffer() instanceof java.awt.image.DataBufferByte byteBuffer) {
-                byte[] byteData = byteBuffer.getData();
-                int limit = Math.min(labels.length, byteData.length);
-                for (int i = 0; i < limit; i++) {
-                    labels[i] = byteData[i] & 0xFF;
+            // Build palette color lookup
+            Map<Integer, int[]> paletteMap = new HashMap<>();
+            if (toolConfig != null && toolConfig.getSupportedClasses() != null && !toolConfig.getSupportedClasses().isEmpty()) {
+                for (SemanticClass sc : toolConfig.getSupportedClasses()) {
+                    paletteMap.put(sc.getId(), new int[]{sc.getRed(), sc.getGreen(), sc.getBlue()});
                 }
             } else {
+                for (int i = 0; i < DEFAULT_VPLAB_PALETTE.length; i++) {
+                    paletteMap.put(i, DEFAULT_VPLAB_PALETTE[i]);
+                }
+            }
+
+            // Check if image is an indexed or grayscale raster with direct class IDs
+            boolean isDirectIndexed = false;
+            if (img.getType() == BufferedImage.TYPE_BYTE_GRAY || img.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+                isDirectIndexed = true;
+            }
+
+            if (isDirectIndexed) {
+                var raster = img.getRaster();
                 for (int y = 0; y < h; y++) {
+                    int offset = y * w;
                     for (int x = 0; x < w; x++) {
-                        labels[y * w + x] = img.getRGB(x, y) & 0xFF;
+                        labels[offset + x] = raster.getSample(x, y, 0);
+                    }
+                }
+            } else {
+                // Check if the RGB data contains direct class IDs (e.g. grayscale encoded as RGB)
+                boolean allSmallValues = true;
+                for (int y = 0; y < Math.min(h, 20) && allSmallValues; y++) {
+                    for (int x = 0; x < Math.min(w, 20); x++) {
+                        int rgb = img.getRGB(x, y);
+                        int r = (rgb >> 16) & 0xFF;
+                        int g = (rgb >> 8) & 0xFF;
+                        int b = rgb & 0xFF;
+                        if ((r != g || g != b) || (r > 21 && r != 255)) {
+                            allSmallValues = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (allSmallValues) {
+                    for (int y = 0; y < h; y++) {
+                        int offset = y * w;
+                        for (int x = 0; x < w; x++) {
+                            labels[offset + x] = img.getRGB(x, y) & 0xFF;
+                        }
+                    }
+                } else {
+                    // RGB Color Mask: match nearest color in palette
+                    for (int y = 0; y < h; y++) {
+                        int offset = y * w;
+                        for (int x = 0; x < w; x++) {
+                            int rgb = img.getRGB(x, y);
+                            int r = (rgb >> 16) & 0xFF;
+                            int g = (rgb >> 8) & 0xFF;
+                            int b = rgb & 0xFF;
+
+                            int bestClass = 255;
+                            int minDistanceSq = Integer.MAX_VALUE;
+
+                            for (Map.Entry<Integer, int[]> entry : paletteMap.entrySet()) {
+                                int[] c = entry.getValue();
+                                int dr = r - c[0];
+                                int dg = g - c[1];
+                                int db = b - c[2];
+                                int distSq = dr * dr + dg * dg + db * db;
+                                if (distSq < minDistanceSq) {
+                                    minDistanceSq = distSq;
+                                    bestClass = entry.getKey();
+                                }
+                            }
+
+                            // If distance is within tolerance, map to class ID; otherwise ignore index
+                            labels[offset + x] = (minDistanceSq <= 20000) ? bestClass : 255;
+                        }
                     }
                 }
             }

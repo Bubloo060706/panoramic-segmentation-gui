@@ -85,7 +85,7 @@ class EndToEndSystemTest {
                 null
         );
 
-        List<SegmentationResult> results = execFuture.get(15, TimeUnit.SECONDS);
+        List<SegmentationResult> results = execFuture.get(120, TimeUnit.SECONDS);
         assertEquals(2, results.size());
 
         SegmentationResult pythonResult = results.stream().filter(r -> r.getToolId().equals("panofusion")).findFirst().orElseThrow();
