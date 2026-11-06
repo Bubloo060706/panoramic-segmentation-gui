@@ -17,7 +17,7 @@
       "PAI Segmentation Checkpoints/PanoFusion/best_mIoU_iter_141500.pth"
     ],
     "workingDirectory": ".",
-    "timeoutSeconds": 60,
+    "timeoutSeconds": 180,
     "enabled": true,
     "parameters": {
       "framework": "PanoFusion",
@@ -68,7 +68,7 @@
       "PAI Segmentation Checkpoints/OPS Baseline/best_mIoU_iter_23000.pth"
     ],
     "workingDirectory": ".",
-    "timeoutSeconds": 60,
+    "timeoutSeconds": 180,
     "enabled": true,
     "parameters": {
       "framework": "OPS (ECCV 2024)",
@@ -119,7 +119,7 @@
       "PAI Segmentation Checkpoints/OmniSAM/best_sam2_s_iou_41.18.pth"
     ],
     "workingDirectory": ".",
-    "timeoutSeconds": 60,
+    "timeoutSeconds": 180,
     "enabled": true,
     "parameters": {
       "framework": "OmniSAM (ICCV 2025)",
@@ -169,7 +169,7 @@
       "PAI Segmentation Checkpoints/Segformer/model.safetensors"
     ],
     "workingDirectory": ".",
-    "timeoutSeconds": 60,
+    "timeoutSeconds": 180,
     "enabled": true,
     "parameters": {
       "framework": "SegFormer (NeurIPS 2021)",
@@ -219,7 +219,7 @@
       "PAI Segmentation Checkpoints/Pretrained SAM  + CNN tracking/classifier _vplab.pth"
     ],
     "workingDirectory": ".",
-    "timeoutSeconds": 60,
+    "timeoutSeconds": 180,
     "enabled": true,
     "parameters": {
       "framework": "Pretrained SAM + CNN tracking",

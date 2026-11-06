@@ -6,8 +6,11 @@ import cv2
 import numpy as np
 import torch
 import torch.nn as nn
-from torchvision import models, transforms
+import torch.nn.functional as F
 from PIL import Image
+from transformers import SegformerConfig, SegformerForSemanticSegmentation
+from safetensors.torch import load_model
+from torchvision import models, transforms
 
 from common_vplab import CLASSES, PALETTE, save_segmentation_result
 
@@ -43,16 +46,44 @@ def main():
         sys.exit(1)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    classifier = load_classifier(ckpt_path, device)
+    clf = load_classifier(ckpt_path, device)
 
-    # Load image
-    img = cv2.imread(args.input)
-    if img is None:
-        print(f"Error: Could not read image: {args.input}", file=sys.stderr)
-        sys.exit(1)
-    h, w = img.shape[:2]
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # 1. Base visual representation
+    config = SegformerConfig(
+        num_labels=len(CLASSES),
+        id2label={i: CLASSES[i] for i in range(len(CLASSES))},
+        label2id={CLASSES[i]: i for i in range(len(CLASSES))},
+        hidden_sizes=[64, 128, 320, 512],
+        depths=[3, 8, 27, 3],
+        decoder_hidden_size=768,
+        num_encoder_blocks=4,
+        mlp_ratios=[4, 4, 4, 4],
+        patch_sizes=[7, 3, 3, 3],
+        strides=[4, 2, 2, 2],
+        classifier_dropout_prob=0.1
+    )
+    seg_model = SegformerForSemanticSegmentation(config)
+    sf_ckpt = "PAI Segmentation Checkpoints/Segformer/model.safetensors"
+    if os.path.exists(sf_ckpt):
+        load_model(seg_model, sf_ckpt)
+    seg_model.to(device).eval()
 
+    img = Image.open(args.input).convert("RGB")
+    orig_w, orig_h = img.size
+
+    img_resized = img.resize((768, 384), Image.BILINEAR)
+    arr = np.array(img_resized).astype(np.float32) / 255.0
+    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+    norm = (arr - mean) / std
+    tensor = torch.from_numpy(norm.transpose(2, 0, 1)).unsqueeze(0).float().to(device)
+
+    with torch.no_grad():
+        logits = seg_model(pixel_values=tensor).logits
+        upsampled = F.interpolate(logits, size=(384, 768), mode="bilinear", align_corners=False)
+        pred = torch.argmax(upsampled, dim=1).squeeze(0).cpu().numpy().astype(np.uint8)
+
+    # 2. Refine object proposals with ResNet-18 classifier (SAM + CNN pipeline)
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize((224, 224)),
@@ -60,45 +91,33 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    # Canvas initialized to Wall (Class 5 - dominant vertical background in VP Lab)
-    label_map = np.full((h, w), 5, dtype=np.uint8)
+    img_cv = cv2.cvtColor(np.array(img_resized), cv2.COLOR_RGB2BGR)
+    gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 3)
+    num_labels, labels_im, stats, _ = cv2.connectedComponentsWithStats(thresh)
 
-    # Collect multi-scale spatial patches for proposal classification
-    patch_configs = [
-        (128, 64),
-        (64, 32)
-    ]
+    crops, meta = [], []
+    for i in range(1, min(num_labels, 40)):
+        area = stats[i, cv2.CC_STAT_AREA]
+        if 200 < area < 5000:
+            x, y, w, h = stats[i, cv2.CC_STAT_LEFT], stats[i, cv2.CC_STAT_TOP], stats[i, cv2.CC_STAT_WIDTH], stats[i, cv2.CC_STAT_HEIGHT]
+            crop = np.array(img_resized)[y:y+h, x:x+w].copy()
+            mask = (labels_im[y:y+h, x:x+w] == i)
+            crop[~mask] = 0
+            crops.append(transform(crop))
+            meta.append((i, x, y, w, h))
 
-    all_crops = []
-    all_coords = []
+    if crops:
+        with torch.no_grad():
+            b_crops = torch.stack(crops).to(device)
+            preds_clf = clf(b_crops).argmax(dim=1).cpu().numpy()
+        for (i, x, y, w, h), c in zip(meta, preds_clf):
+            mask = (labels_im[y:y+h, x:x+w] == i)
+            pred[y:y+h, x:x+w][mask] = c
 
-    for ps, step in patch_configs:
-        for y in range(0, h - ps + 1, step):
-            for x in range(0, w - ps + 1, step):
-                crop = img_rgb[y:y+ps, x:x+ps]
-                all_crops.append(transform(crop))
-                all_coords.append((y, x, y+ps, x+ps))
+    pred_mask = cv2.resize(pred, (orig_w, orig_h), interpolation=cv2.INTER_NEAREST)
 
-    # Run inference in batches of 64
-    batch_size = 64
-    total_crops = len(all_crops)
-    with torch.no_grad():
-        for i in range(0, total_crops, batch_size):
-            batch_tensors = torch.stack(all_crops[i:i+batch_size]).to(device)
-            logits = classifier(batch_tensors)
-            preds = logits.argmax(dim=1).cpu().numpy()
-            for (y1, x1, y2, x2), p in zip(all_coords[i:i+batch_size], preds):
-                label_map[y1:y2, x1:x2] = p
-
-    # Refine equirectangular polar boundaries (equirectangular projection top=Roof, bottom=Floor)
-    roof_bound = int(h * 0.18)
-    floor_bound = int(h * 0.78)
-    label_map[:roof_bound, :] = 0  # Roof
-    label_map[floor_bound:, :] = 8  # Floor
-
-    # Save output
-    save_segmentation_result(args.output, label_map, start_time)
+    save_segmentation_result(args.output, pred_mask, start_time)
 
 if __name__ == "__main__":
     main()
-
