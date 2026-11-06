@@ -59,13 +59,11 @@
     "executionType": "PROCESS",
     "commandTemplate": [
       "java",
-      "scripts/PanoFusionSegmenter.java",
+      "scripts/OPSSegmenter.java",
       "--input",
       "{IMAGE_PATH}",
       "--output",
       "{OUTPUT_PATH}",
-      "--refine",
-      "false",
       "--checkpoint",
       "PAI Segmentation Checkpoints/OPS Baseline/best_mIoU_iter_23000.pth"
     ],

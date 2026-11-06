@@ -41,3 +41,4 @@ class CheckpointTensorReaderTest {
         assertEquals(0.044284f, cw.bias[0], 1e-4f);
     }
 }
+
