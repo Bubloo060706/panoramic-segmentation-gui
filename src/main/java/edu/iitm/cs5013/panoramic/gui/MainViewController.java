@@ -12,6 +12,7 @@ import edu.iitm.cs5013.panoramic.controller.AsyncSegmentationCoordinator;
 import edu.iitm.cs5013.panoramic.controller.ToolExecutionListener;
 import edu.iitm.cs5013.panoramic.model.MaskData;
 import edu.iitm.cs5013.panoramic.model.SegmentationResult;
+import edu.iitm.cs5013.panoramic.model.SemanticClass;
 import edu.iitm.cs5013.panoramic.normalization.ResultNormalizer;
 import edu.iitm.cs5013.panoramic.segmentation.SegmentationTool;
 import edu.iitm.cs5013.panoramic.validation.ValidationResult;
@@ -345,7 +346,7 @@ public class MainViewController {
                 ToolConfig dummyConfig = new ToolConfig("ground-truth", "Ground Truth", "",
                         ExecutionType.MOCK, List.of(), "", "", 10L, true, null, null);
                 MaskData mask = normalizer.loadMaskFromImageFile(gtPath, dummyConfig);
-                int[] rawLabels = mask.getRawLabels();
+                int[] rawLabels = mask.getLabels();
                 Map<Integer, Long> classCounts = new HashMap<>();
                 for (int l : rawLabels) {
                     if (l >= 0 && l < ResultNormalizer.DEFAULT_VPLAB_PALETTE.length) {
