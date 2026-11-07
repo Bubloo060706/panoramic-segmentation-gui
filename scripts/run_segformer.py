@@ -1,5 +1,12 @@
-import argparse
+"""
+SegFormer (Perspective Fine-Tuned) inference runner.
+Strictly loads: PAI Segmentation Checkpoints/Segformer/model.safetensors
+"""
 import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["MPLCONFIGDIR"] = os.path.join(os.path.expanduser("~"), ".gemini")
+
+import argparse
 import sys
 import time
 import cv2
@@ -35,7 +42,7 @@ def main():
         print(f"Error: Checkpoint not found: {ckpt_path}", file=sys.stderr)
         sys.exit(1)
 
-    # 1. Instantiate SegFormer MiT-B4 locally (100% offline)
+    # 1. Instantiate SegFormer MiT-B4 locally
     config = SegformerConfig(
         num_labels=len(CLASSES),
         id2label={i: CLASSES[i] for i in range(len(CLASSES))},
@@ -59,7 +66,7 @@ def main():
     img = Image.open(args.input).convert("RGB")
     orig_w, orig_h = img.size
     
-    # Official resolution: 384x768 (preserves 2:1 equirectangular aspect ratio)
+    # Official benchmark resolution: 384x768
     img_resized = img.resize((768, 384), Image.BILINEAR)
     arr = np.array(img_resized).astype(np.float32) / 255.0
     mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
@@ -67,7 +74,7 @@ def main():
     norm = (arr - mean) / std
     tensor = torch.from_numpy(norm.transpose(2, 0, 1)).unsqueeze(0).float().to(device)
 
-    # 3. Model Forward Pass (exact official notebook pipeline)
+    # 3. Model Forward Pass
     with torch.no_grad():
         outputs = model(pixel_values=tensor)
         logits = outputs.logits
@@ -75,9 +82,8 @@ def main():
         pred = torch.argmax(upsampled, dim=1).squeeze(0).cpu().numpy().astype(np.uint8)
         pred_mask = cv2.resize(pred, (orig_w, orig_h), interpolation=cv2.INTER_NEAREST)
 
-    # 4. Save Output JSON & Color Mask PNG
+    # 4. Save Output JSON & Masks
     save_segmentation_result(args.output, pred_mask, start_time)
 
 if __name__ == "__main__":
     main()
-

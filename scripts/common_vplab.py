@@ -40,16 +40,20 @@ PALETTE_NP = np.array(PALETTE, dtype=np.uint8)
 def save_segmentation_result(output_path, pred_mask, start_time):
     """
     Saves segmentation mask PNG and canonical JSON conforming to ProcessModelAdapter/ResultNormalizer.
+    Saves direct grayscale indexed mask for 100% exact, instant Java reading, and RGB color mask for visualization.
     """
     h, w = pred_mask.shape[:2]
     pred_mask = np.clip(pred_mask, 0, 20).astype(np.uint8)
     
-    # 1. Generate RGB colorized mask
-    color_mask = PALETTE_NP[pred_mask]
-    
-    # Write mask image file
+    # 1. Generate direct index mask PNG (1-channel uint8, values 0..20)
+    # ResultNormalizer detects isDirectIndexed = true and loads in <30ms without color distortion.
     mask_path = os.path.splitext(output_path)[0] + "_mask.png"
-    cv2.imwrite(mask_path, cv2.cvtColor(color_mask, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(mask_path, pred_mask)
+
+    # Also save RGB color preview PNG for visual inspection
+    color_mask_path = os.path.splitext(output_path)[0] + "_mask_color.png"
+    color_mask = PALETTE_NP[pred_mask]
+    cv2.imwrite(color_mask_path, cv2.cvtColor(color_mask, cv2.COLOR_RGB2BGR))
     
     # 2. Extract detected classes and pixel counts
     detected_classes = []
@@ -74,7 +78,7 @@ def save_segmentation_result(output_path, pred_mask, start_time):
         "height": int(h),
         "segmentationType": "SEMANTIC",
         "maskPath": mask_path.replace("\\", "/"),
-        "labels": pred_mask.flatten().tolist(),
+        "colorMaskPath": color_mask_path.replace("\\", "/"),
         "classes": detected_classes,
         "dataset": "VPLAB",
         "taxonomy": "Ind-PanSeg",
@@ -83,8 +87,11 @@ def save_segmentation_result(output_path, pred_mask, start_time):
             "inference_time_ms": elapsed_ms
         }
     }
+
+    # Only serialize full integer array if size is small (prevents 25MB JSON bottleneck on 4K panoramas)
+    if (w * h) <= 250000:
+        out_dict["labels"] = pred_mask.flatten().tolist()
     
-    # Write JSON output compactly for instant I/O
     out_dir = os.path.dirname(output_path)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
@@ -92,4 +99,3 @@ def save_segmentation_result(output_path, pred_mask, start_time):
         json.dump(out_dict, f)
     
     print(f"Inference completed in {elapsed_ms}ms. Detected {len(detected_classes)} classes. Saved to {output_path}")
-
