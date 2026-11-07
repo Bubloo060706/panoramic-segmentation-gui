@@ -319,9 +319,10 @@ public class ResultNormalizer {
                         }
                     }
                 }
+
                 return new MaskData(w, h, labels);
             } catch (IOException e) {
-            throw new NormalizationException("IO error reading mask image: " + maskPath, e);
+                throw new NormalizationException("IO error reading mask image: " + maskPath, e);
+            }
         }
     }
-}
