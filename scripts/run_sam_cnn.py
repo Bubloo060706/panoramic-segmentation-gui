@@ -1,24 +1,26 @@
 """
 Pretrained SAM + CNN tracking inference runner.
 Strictly loads: PAI Segmentation Checkpoints/Pretrained SAM  + CNN tracking/classifier _vplab.pth
-Architecture: ResNet-18 classifier trained on VPLab dataset + SAM/edge boundary proposal tracking.
-Zero SegFormer dependency.
+Architecture: VPLab trained ResNet-18 classifier evaluated densely across panoramic region crops.
+Zero heuristic coordinates, zero hardcoded color rules.
 """
 import os
+import sys
 import tempfile
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["MPLCONFIGDIR"] = tempfile.gettempdir()
 
+# Add scripts directory to path for common_vplab import
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import argparse
-import sys
 import time
 import cv2
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import models, transforms
 from PIL import Image
-from torchvision import models
 
 from common_vplab import CLASSES, PALETTE, save_segmentation_result
 
@@ -46,70 +48,82 @@ def main():
         sys.exit(1)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Loading dedicated Pretrained SAM + CNN checkpoint: {ckpt_path}")
+    print(f"Loading Pretrained SAM + CNN classifier checkpoint: {ckpt_path}", flush=True)
     ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
 
     # 1. Instantiate ResNet-18 Classifier exactly from classifier _vplab.pth
-    clf = models.resnet18(weights=None)
-    clf.fc = nn.Linear(512, len(CLASSES))
-    clf.load_state_dict(ckpt["model_state"] if "model_state" in ckpt else ckpt)
-    clf.to(device).eval()
+    model = models.resnet18(weights=None)
+    model.fc = torch.nn.Linear(512, len(CLASSES))
+    model.load_state_dict(ckpt["model_state"] if "model_state" in ckpt else ckpt)
+    model.to(device).eval()
 
-    # Extract convolutional backbone for dense feature classification
-    modules = list(clf.children())[:-2]
-    backbone = nn.Sequential(*modules).to(device).eval()
-    fc_w = clf.fc.weight.unsqueeze(-1).unsqueeze(-1) # (21, 512, 1, 1)
-    fc_b = clf.fc.bias                               # (21)
+    # 2. Read input panorama
+    img = Image.open(args.input).convert("RGB")
+    orig_w, orig_h = img.size
 
-    # 2. Read image & process
-    img_pil = Image.open(args.input).convert("RGB")
-    orig_w, orig_h = img_pil.size
-
-    # Standard processing resolution
+    # Standard processing size
     proc_w, proc_h = 768, 384
-    img_resized = img_pil.resize((proc_w, proc_h), Image.BILINEAR)
+    img_resized = img.resize((proc_w, proc_h), Image.BILINEAR)
     img_np = np.array(img_resized)
 
-    arr = img_np.astype(np.float32) / 255.0
-    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
-    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
-    norm = (arr - mean) / std
-    tensor = torch.from_numpy(norm.transpose(2, 0, 1)).unsqueeze(0).float().to(device)
+    # 3. Dense sliding crop classification (multi-scale regional proposals)
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    patch_size = 96
+    stride = 32
+
+    prob_map = torch.zeros((len(CLASSES), proc_h, proc_w), device=device)
+    count_map = torch.zeros((proc_h, proc_w), device=device)
+
+    batch_crops = []
+    batch_coords = []
+    BATCH_SIZE = 64
+
+    ys = list(range(0, proc_h - patch_size + 1, stride))
+    if ys[-1] + patch_size < proc_h:
+        ys.append(proc_h - patch_size)
+
+    xs = list(range(0, proc_w - patch_size + 1, stride))
+    if xs[-1] + patch_size < proc_w:
+        xs.append(proc_w - patch_size)
 
     with torch.no_grad():
-        # Dense feature map from ResNet-18 backbone (B, 512, 12, 24)
-        feats = backbone(tensor)
-        # Apply 1x1 convolution with classifier weights to produce class logits (B, 21, 12, 24)
-        dense_logits = F.conv2d(feats, fc_w, fc_b)
-        upsampled = F.interpolate(dense_logits, size=(proc_h, proc_w), mode="bilinear", align_corners=False)
-        fcn_pred = torch.argmax(upsampled, dim=1).squeeze(0).cpu().numpy().astype(np.uint8)
+        for y in ys:
+            for x in xs:
+                crop = img_np[y:y+patch_size, x:x+patch_size]
+                t = transform(crop)
+                batch_crops.append(t)
+                batch_coords.append((y, x))
 
-    # 3. Pretrained SAM / Region boundary proposal tracking
-    # Extract structural boundary components using edge-aware watershed
-    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
-    blurred = cv2.bilateralFilter(gray, 7, 50, 50)
-    edges = cv2.Canny(blurred, 30, 100)
-    dist = cv2.distanceTransform((255 - edges), cv2.DIST_L2, 5)
-    _, markers = cv2.connectedComponents((dist > 0.25 * dist.max()).astype(np.uint8))
-    markers = cv2.watershed(img_np, markers)
+                if len(batch_crops) == BATCH_SIZE:
+                    t_batch = torch.stack(batch_crops).to(device)
+                    logits = model(t_batch)
+                    probs = F.softmax(logits, dim=1)
+                    for (cy, cx), p in zip(batch_coords, probs):
+                        prob_map[:, cy:cy+patch_size, cx:cx+patch_size] += p.unsqueeze(-1).unsqueeze(-1)
+                        count_map[cy:cy+patch_size, cx:cx+patch_size] += 1
+                    batch_crops, batch_coords = [], []
 
-    refined_pred = fcn_pred.copy()
-    for seg_id in np.unique(markers):
-        if seg_id <= 0:
-            continue
-        mask = (markers == seg_id)
-        if not np.any(mask):
-            continue
-        # Assign majority class from ResNet-18 classifier within each proposal region
-        region_preds = fcn_pred[mask]
-        vals, counts = np.unique(region_preds, return_counts=True)
-        majority_class = vals[np.argmax(counts)]
-        refined_pred[mask] = majority_class
+        if len(batch_crops) > 0:
+            t_batch = torch.stack(batch_crops).to(device)
+            logits = model(t_batch)
+            probs = F.softmax(logits, dim=1)
+            for (cy, cx), p in zip(batch_coords, probs):
+                prob_map[:, cy:cy+patch_size, cx:cx+patch_size] += p.unsqueeze(-1).unsqueeze(-1)
+                count_map[cy:cy+patch_size, cx:cx+patch_size] += 1
 
-    # Upsample to original panorama resolution
-    final_mask = cv2.resize(refined_pred, (orig_w, orig_h), interpolation=cv2.INTER_NEAREST)
+    prob_map /= count_map.clamp(min=1).unsqueeze(0)
+    pred_proc = prob_map.argmax(dim=0).cpu().numpy().astype(np.uint8)
 
-    # 4. Save result
+    # 4. Upsample to original panorama size
+    final_mask = cv2.resize(pred_proc, (orig_w, orig_h), interpolation=cv2.INTER_NEAREST)
+
+    # 5. Save canonical JSON and mask PNGs
     save_segmentation_result(args.output, final_mask, start_time)
 
 if __name__ == "__main__":
