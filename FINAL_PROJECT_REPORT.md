@@ -2,8 +2,8 @@
 **Project Title:** A Modular Java Framework for Multi-Tool 360° Panoramic Image Segmentation & Quantitative Evaluation  
 **Course:** CS5013 – Programming with AI | **Semester:** Jan–May 2026 | **Dept. of Computer Science and Engineering, IIT Madras**  
 **Student:** Rathan Balaji P R (Roll No: CS26E009)  
-**Instructor & Stakeholder:** Prof. Sukhendu Das, Professor, Dept. of CSE, IIT Madras  
-**Submission Commit:** `f3664161f36dc164a2c53aebfd75f8f8dddc89da` (Date: 2026-11-08)  
+**Instructor / Faculty Stakeholder:** Prof. Sukhendu Das, Professor, Dept. of CSE, IIT Madras  
+**Submission Commit:** `2c7f91861639a07e69a91b66f41cc37dcf378924` (Date: 2026-11-08)  
 **Repository:** [https://github.com/Bubloo060706/panoramic-segmentation-gui.git](https://github.com/Bubloo060706/panoramic-segmentation-gui.git)  
 
 ---
