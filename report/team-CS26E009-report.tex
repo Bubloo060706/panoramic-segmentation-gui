@@ -1,8 +1,8 @@
 \documentclass[10pt,a4paper]{article}
 
-\usepackage[margin=0.55in,top=0.48in,bottom=0.50in]{geometry}
+\usepackage[margin=0.52in,top=0.45in,bottom=0.45in]{geometry}
 \usepackage{setspace}
-\setlength{\parskip}{0.25em}
+\setlength{\parskip}{0.18em}
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{parskip}
@@ -18,29 +18,29 @@
     urlcolor=blue!75!black
 }
 
-% Section headings with an explicit clean one-line gap before each section
+% Section headings spacing
 \usepackage[compact]{titlesec}
-\titlespacing*{\section}{0pt}{1.2\baselineskip plus .2ex minus .1ex}{0.4\baselineskip plus .1ex}
+\titlespacing*{\section}{0pt}{0.9\baselineskip plus .1ex minus .1ex}{0.25\baselineskip plus .1ex}
 
-\title{\vspace{-1.2em}\textbf{\large CS5013 Final Project Report} \\
+\title{\vspace{-1.4em}\textbf{\large CS5013 Final Project Report} \\
        \normalsize\textit{GUI Framework for Multi-Tool Panoramic Image Segmentation}\vspace{-0.4em}}
-\author{\normalsize\textbf{Rathan Balaji P R} (Roll No: CS26E009) \\ \textit{Department of Computer Science and Engineering, IIT Madras}\vspace{-0.8em}}
+\author{\normalsize\textbf{Rathan Balaji P R} (Roll No: CS26E009) \\ \textit{Department of Computer Science and Engineering, IIT Madras}\vspace{-0.9em}}
 \date{}
 
 \begin{document}
 \maketitle
 
-\vspace{-1.4em}
+\vspace{-1.6em}
 
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
   \item[Team Name:]         PanoVision
   \item[Repository:]        \url{https://github.com/Bubloo060706/panoramic-segmentation-gui.git}
   \item[Submission commit:] \texttt{0283aa7c8900a1decd57c8939623ad8d77eb9e0a} (date: \texttt{2026-11-08}).
-  \item[Docker image:]      \url{https://drive.google.com/file/d/1l6A5eqsx8xMkYwREb9w7SYdtVQPNu-O8/view?usp=sharing}\\(view access to course staff).
+  \item[Docker image:]      \url{https://drive.google.com/file/d/1l6A5eqsx8xMkYwREb9w7SYdtVQPNu-O8/view?usp=sharing} (view access).
   \item[Tagline:]           \textit{A decoupled Java 21 desktop application orchestrating deep learning models for panoramic indoor segmentation with artifact-free 360$^\circ$ yaw rotation and boundary-aware metrics.}
 \end{description}
 
-\vspace{0.6em}
+\vspace{0.35em}
 \noindent\textbf{AI-authorship clause.}
 \textit{%
 We used AI tools to help draft parts of this report. The claims,
@@ -58,7 +58,7 @@ We engineered a modular Java 21 / JavaFX desktop application that isolates deep 
 Stakeholder verdict: Accepted by course stakeholder Prof. Sukhendu Das during the demonstration on 2026-11-07; the system verified genuine inference forward passes across all five dedicated checkpoints (achieving 91.5\% mIoU on OmniSAM and 86.6\% on OPS on benchmark image45), passed all 39 automated JUnit 5 test suites, and satisfied all architectural separation constraints.
 
 \section{Course concepts used in the project}
-\begin{itemize}[leftmargin=*,itemsep=1.8pt]
+\begin{itemize}[leftmargin=*,itemsep=1.2pt]
   \item \textbf{AI Mental Models \& Task Decomposition.} Decomposed a monolithic vision pipeline into decoupled architectural responsibilities (presentation, asynchronous coordination, adapter boundaries, canonical schema normalization, and morphological evaluation) rather than attempting unmaintainable single-shot AI code generation. \\
   File: \texttt{src/main/java/.../AsyncSegmentationCoordinator.java}. Commit: \texttt{0283aa7}.
   
@@ -102,19 +102,19 @@ Stakeholder verdict: Accepted by course stakeholder Prof. Sukhendu Das during th
   git clone https://github.com/Bubloo060706/panoramic-segmentation-gui.git
   cd panoramic-segmentation-gui && .\RunGUI.bat   # (or: .\mvnw.cmd javafx:run)
 \end{verbatim}
-\vspace{-0.3em}
+\vspace{-0.4em}
 \textbf{Where the artefact lives after the course.} Dept. of Computer Science and Engineering GitHub repository (\url{https://github.com/Bubloo060706/panoramic-segmentation-gui.git}) and local laboratory research workstations.
 
-\vspace{0.4em}
+\vspace{0.25em}
 \textbf{Stakeholder quote (one sentence, verbatim).}
 \begin{quote}
 \textit{``The multi-model side-by-side comparison with real checkpoints and yaw wrap-around visualization satisfies all project requirements cleanly.''}\\
 \vspace{-0.3em}\raggedleft -- Prof. Sukhendu Das, Faculty Evaluator, Dept. of CSE, IIT Madras, 2026-11-07.
 \end{quote}
-\vspace{-0.3em}
+\vspace{-0.4em}
 
 \section{Known limitations}
-\begin{itemize}[leftmargin=*,itemsep=1.8pt]
+\begin{itemize}[leftmargin=*,itemsep=1.2pt]
   \item \textbf{CPU Latency on High-Resolution Sliding Windows:} Without a CUDA-capable GPU, sliding-window models (OmniSAM, OPS, PanoFusion) take 60--90 seconds per image on multi-core CPU due to intensive multi-head self-attention forward passes.
   \item \textbf{Spherical Projection Assumption:} Input imagery must conform to standard equirectangular ($360^\circ \times 180^\circ$, 2:1 aspect ratio) projection; perspective crops or distorted fisheye inputs trigger UI aspect warnings and exhibit coordinate distortion under horizontal yaw rotation.
   \item \textbf{Host Memory Pressure Under Full Parallelism:} Concurrently executing all five deep neural networks simultaneously requires $>12$~GB host RAM; lower-spec host environments must run models sequentially to avoid OS disk-paging.
