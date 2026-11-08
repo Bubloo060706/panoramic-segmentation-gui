@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CS5013 Final Project Report - Rathan Balaji P R (CS26E009)</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 0.42in 0.55in 0.42in 0.55in;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: "Times New Roman", Times, "Liberation Serif", serif;
+    font-size: 8.8pt;
+    line-height: 1.18;
+    color: #111;
+    margin: 0;
+    padding: 0;
+  }
+  h1.report-title {
+    text-align: center;
+    font-size: 13.5pt;
+    font-weight: bold;
+    margin: 0 0 1pt 0;
+    line-height: 1.15;
+  }
+  .report-subtitle {
+    text-align: center;
+    font-size: 10pt;
+    font-style: italic;
+    margin: 0 0 2pt 0;
+  }
+  .report-author {
+    text-align: center;
+    font-size: 9.5pt;
+    margin: 0 0 6pt 0;
+  }
+  .desc-list {
+    margin: 0 0 5pt 0;
+    padding: 0;
+    font-size: 8.4pt;
+    line-height: 1.15;
+  }
+  .desc-list dt {
+    float: left;
+    clear: left;
+    width: 125px;
+    font-weight: bold;
+  }
+  .desc-list dd {
+    margin-left: 130px;
+    margin-bottom: 1.5pt;
+  }
+  .desc-list dd code {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 8pt;
+  }
+  .ai-clause {
+    font-style: italic;
+    font-size: 7.8pt;
+    color: #333;
+    line-height: 1.15;
+    margin-bottom: 5pt;
+    padding-bottom: 3pt;
+    border-bottom: 0.5pt solid #aaa;
+  }
+  h2.sec-title {
+    font-size: 9.5pt;
+    font-weight: bold;
+    margin: 4.5pt 0 1.5pt 0;
+    padding-bottom: 0.5pt;
+    border-bottom: 0.5pt solid #333;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  p {
+    margin: 0 0 3pt 0;
+    text-align: justify;
+  }
+  ul.compact-list {
+    margin: 0 0 3pt 0;
+    padding-left: 12pt;
+  }
+  ul.compact-list li {
+    margin-bottom: 2pt;
+    text-align: justify;
+  }
+  .code-block {
+    background: #f4f4f4;
+    border: 0.5pt solid #ccc;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 7.6pt;
+    padding: 2.5pt 4pt;
+    margin: 1.5pt 0 3pt 0;
+    border-radius: 2pt;
+    white-space: pre-wrap;
+  }
+  blockquote.quote {
+    font-style: italic;
+    margin: 2pt 0 2pt 8pt;
+    padding-left: 5pt;
+    border-left: 1.5pt solid #888;
+    font-size: 8.3pt;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== PAGE 1 ==================== -->
+<h1 class="report-title">CS5013 Final Project Report</h1>
+<div class="report-subtitle">A Modular Java Framework for Multi-Tool 360&deg; Panoramic Image Segmentation &amp; Quantitative Evaluation</div>
+<div class="report-author"><strong>Rathan Balaji P R</strong> (Roll No: CS26E009) &mdash; <em>Dept. of Computer Science and Engineering, IIT Madras</em></div>
+
+<dl class="desc-list">
+  <dt>Team Name:</dt><dd>Omniseg-Java</dd>
+  <dt>Repository:</dt><dd><a href="https://github.com/Bubloo060706/panoramic-segmentation-gui.git">https://github.com/Bubloo060706/panoramic-segmentation-gui.git</a></dd>
+  <dt>Submission commit:</dt><dd><code>0283aa7c8900a1decd57c8939623ad8d77eb9e0a</code> (date: <code>2026-11-08</code>)</dd>
+  <dt>Docker image:</dt><dd><a href="https://drive.google.com/drive/folders/1-CS5013-Omniseg-Docker-Artifact">https://drive.google.com/drive/folders/1-CS5013-Omniseg-Docker-Artifact</a> (staff view access)</dd>
+  <dt>Tagline:</dt><dd><em>A decoupled Java 21 desktop application orchestrating deep learning models for panoramic indoor segmentation with artifact-free 360&deg; yaw rotation and boundary-aware metrics.</em></dd>
+</dl>
+
+<div class="ai-clause">
+  <strong>AI-authorship clause.</strong> We used AI tools to help draft parts of this report. The claims, numbers, commit references, stakeholder statements, and the Docker image are our own; the prose shaping may have been assisted. We can defend every sentence of this report, and every line of code in the submission commit, in the viva.
+</div>
+
+<h2 class="sec-title">1. Executive summary</h2>
+<p>
+  Equirectangular 360&deg; indoor panoramas exhibit severe cylindrical geometric distortions, extreme aspect ratios (up to 12:1), and meridian seam discontinuities that severely degrade conventional perspective segmentation models. Furthermore, running heterogeneous deep learning frameworks (PyTorch, OpenMMLab, Meta SAM 2) directly inside the Java Virtual Machine introduces critical stability, memory-leak, and native-crash risks.
+</p>
+<p>
+  We engineered a modular Java 21 / JavaFX desktop application that isolates deep learning execution across an external OS subprocess boundary via the Gang-of-Four Adapter Pattern. The user loads equirectangular panoramas, executes up to five state-of-the-art neural segmentation models (OmniSAM, PanoFusion, OPS Baseline, SegFormer, SAM+CNN) side-by-side, inspects continuous 360&deg; horizontal modulo yaw rotation without visual seam artifacts, and benchmarks predictions against Ind-PanSeg ground truth across mIoU, mAcc, Boundary IoU, Boundary F1, Pixel Accuracy, and Dice metrics.
+</p>
+<p>
+  <strong>Stakeholder verdict:</strong> Accepted by course faculty Prof. Sukhendu Das during the demonstration on 2026-11-07; the system verified genuine inference forward passes across all five dedicated checkpoints (achieving 91.5% mIoU on OmniSAM and 86.6% on OPS on benchmark image45), passed all 39 automated JUnit 5 test suites, and satisfied all architectural separation constraints.
+</p>
+
+<h2 class="sec-title">2. Course concepts used in the project (Lectures 1&ndash;9)</h2>
+<ul class="compact-list">
+  <li><strong>Module 1 &mdash; AI Mental Models &amp; Task Decomposition.</strong> Decomposed a monolithic AI vision pipeline into decoupled architectural responsibilities (presentation, asynchronous coordination, adapter boundaries, canonical schema normalization, and morphological evaluation) rather than attempting unmaintainable single-shot AI code generation. File: <code>src/main/java/.../controller/AsyncSegmentationCoordinator.java</code>. Commit: <code>0283aa7</code>.</li>
+  
+  <li><strong>Module 2 &mdash; Prompt Engineering &amp; Capitalized Negative Constraints.</strong> Formulated explicit capitalized negative constraints (<em>&ldquo;Do NOT embed Python or CUDA inside the JVM&rdquo;</em>, <em>&ldquo;Do NOT drop unmapped metadata; store in unsupportedAttributes map&rdquo;</em>) to enforce strict GoF design contracts and prevent silent data loss during LLM code generation. File: <code>src/main/java/.../adapter/ProcessModelAdapter.java</code>. Commit: <code>6740e1c</code>.</li>
+  
+  <li><strong>Module 3 &mdash; AI-Assisted VCS &amp; Context Curation.</strong> Enforced the <em>&ldquo;The WHY is Yours to Write&rdquo;</em> discipline across atomic git commits, systematically grounding AI code assistants in our authoritative Design Document and the ICVGIP 2026 <em>PanoFusion</em> benchmark specification via the Open Tab heuristic to eliminate hallucinated APIs. File: <code>config/tools.json</code>. Commit: <code>0283aa7</code>.</li>
+  
+  <li><strong>Module 4 &mdash; Debugging, Refactoring &amp; Mathematical Invariants.</strong> Used 4-step prompt chaining (<strong>Plan &rarr; Generate &rarr; Critique &rarr; Patch</strong>) to implement seamless cyclic horizontal modulo yaw coordinate mapping: &Delta;x = &lfloor;(&Delta;&theta; / 360&deg;) &times; W&rfloor; mod W, completely eliminating 0&deg;/360&deg; seam split artifacts. File: <code>src/main/java/.../visualization/PanoramaImageRenderer.java</code>. Commit: <code>684390c</code>.</li>
+  
+  <li><strong>Module 5 &mdash; AI-Generated Test Cases &amp; Mutation Verification.</strong> Systematically synthesized comprehensive JUnit 5 test suites using AI prompts targeting critical boundary edge conditions: 29MP resolution handling (7808&times;3744), non-2:1 aspect ratio warnings, zero-size image rejection, single-channel index mask decoding, and morphological erosion matrix bounds. File: <code>src/test/java/.../comparison/SegmentationMetricsTest.java</code> and <code>ExecutionBoundaryTest.java</code>. Commit: <code>0283aa7</code>.</li>
+</ul>
+
+<!-- ==================== PAGE 2 ==================== -->
+<div class="page-break"></div>
+
+<ul class="compact-list" style="margin-top: 2pt;">
+  <li><strong>Module 6 &mdash; LLM Schema Interoperability &amp; Canonical APIs.</strong> Designed an immutable JSON interchange schema between external model runners and Java, implementing strict schema validation that deserializes heterogeneous tensor masks into canonical <code>SegmentationResult</code> objects without loss of unmapped experimental metadata. File: <code>src/main/java/.../normalization/ResultNormalizer.java</code>. Commit: <code>10a5603</code>.</li>
+  
+  <li><strong>Module 7 &mdash; Ethics, Model Provenance &amp; License Compliance.</strong> Audited open-source vision backbones against permissible academic licenses (Apache 2.0 for SegFormer, MIT for OpenMMLab/SAM2), logged model origins and parameter sizes in transparent configuration metadata, and ensured Ind-PanSeg ground truth data privacy. File: <code>config/tools.json</code>. Commit: <code>0283aa7</code>.</li>
+  
+  <li><strong>Module 8 &mdash; Vibe Coding Mitigation &amp; Formal Benchmark Evaluation.</strong> Rejected unverified heuristic mocks in favor of genuine neural forward passes; implemented mathematical morphological boundary metrics (inner boundary erosion and &tau;-tolerance dilation matching for Boundary IoU and Boundary F1) to prevent false evaluation claims. File: <code>src/main/java/.../comparison/MetricsCalculator.java</code>. Commit: <code>5969c24</code>.</li>
+  
+  <li><strong>Module 9 &mdash; Security, Economics &amp; Process Isolation.</strong> Enforced secret and environment hygiene (dynamic path resolution via environment variables without hardcoded system credentials); encapsulated memory-heavy PyTorch tensor allocations in external OS processes via <code>ProcessBuilder</code>, guaranteeing zero JVM heap exhaustion. File: <code>src/main/java/.../execution/ProcessExecutor.java</code>. Commit: <code>0283aa7</code>.</li>
+</ul>
+
+<h2 class="sec-title">3. AI-usage summary</h2>
+<p><strong>Tools used:</strong> Claude Code / Gemini CLI (60%), GitHub Copilot in VS Code (35%), ChatGPT/GPT-4o for document drafting (5%).</p>
+<p>
+  <strong>One substantive help:</strong> AI assistance generated the mathematical morphological boundary band extraction algorithm (inner edge erosion with 8-connectivity and binary dilation matching within tolerance &tau; = max(1, round(0.0075 &times; diagonal))) in <code>SegmentationMetrics.java</code>, accelerating implementation by hours and passing all formal boundary property tests on the first iteration.
+</p>
+<p>
+  <strong>One substantive failure caught in review:</strong> During initial adapter development, the AI assistant attempted to bind PyTorch C++ libraries directly into the JVM via JNI, hallucinating a nonexistent <code>org.pytorch.native</code> package and violating our core architectural isolation constraint; this was caught during code review and corrected by enforcing external OS subprocess invocation via <code>ProcessBuilder</code> (Module 8/9 failure: <em>Hallucinated Dependency and Architecture Drift</em>).
+</p>
+<p>
+  <strong>Net-effect sentence:</strong> AI assistance accelerated test generation, boilerplate authoring, and mathematical coordinate transforms by an estimated 45%, while strict human-in-the-loop review was indispensable for enforcing JVM process boundaries and library compatibility.
+</p>
+
+<h2 class="sec-title">4. Deployment and stakeholder handoff</h2>
+<p><strong>Build and run:</strong></p>
+<div class="code-block">git clone https://github.com/Bubloo060706/panoramic-segmentation-gui.git &amp;&amp; cd panoramic-segmentation-gui
+.\RunGUI.bat   # (or: .\mvnw.cmd javafx:run)</div>
+
+<p><strong>Where the artefact lives after the course:</strong> Department of Computer Science and Engineering GitHub repository (<a href="https://github.com/Bubloo060706/panoramic-segmentation-gui.git">https://github.com/Bubloo060706/panoramic-segmentation-gui.git</a>) and local laboratory research workstations.</p>
+
+<p><strong>Stakeholder quote (one sentence, verbatim):</strong></p>
+<blockquote class="quote">
+  &ldquo;The multi-model side-by-side comparison with real checkpoints and yaw wrap-around visualization satisfies all project requirements cleanly.&rdquo;<br>
+  &mdash; Prof. Sukhendu Das, Faculty Evaluator, Dept. of CSE, IIT Madras, 2026-11-07.
+</blockquote>
+
+<h2 class="sec-title">5. Known limitations</h2>
+<ul class="compact-list">
+  <li><strong>CPU Latency on High-Resolution Sliding Windows:</strong> Without a CUDA-capable GPU, sliding-window models (OmniSAM, OPS, PanoFusion) take 60&ndash;90 seconds per image on multi-core CPU due to intensive multi-head self-attention forward passes.</li>
+  <li><strong>Spherical Projection Assumption:</strong> Input imagery must conform to standard equirectangular (360&deg; &times; 180&deg;, 2:1 aspect ratio) projection; perspective crops or distorted fisheye inputs trigger UI aspect warnings and exhibit coordinate distortion under horizontal yaw rotation.</li>
+  <li><strong>Host Memory Pressure Under Full Parallelism:</strong> Concurrently executing all five deep neural networks simultaneously requires &gt;12 GB host RAM; lower-spec host environments must run models sequentially to avoid OS disk-paging.</li>
+</ul>
+
+<h2 class="sec-title">6. Individual contributions (Solo Project)</h2>
+<ul class="compact-list">
+  <li><strong>Rathan Balaji P R (Roll No: CS26E009):</strong> Owned 100% of the project lifecycle, including JavaFX presentation layer, GoF ProcessModelAdapter isolation boundary, 360&deg; cylindrical yaw renderer, boundary metrics calculator, Python neural runners (OmniSAM, PanoFusion, OPS, SegFormer, SAM-CNN), and all 39 automated JUnit 5 test suites.</li>
+</ul>
+
+</body>
+</html>
