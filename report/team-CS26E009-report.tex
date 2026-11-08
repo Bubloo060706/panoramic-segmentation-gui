@@ -23,8 +23,8 @@
 \titlespacing*{\section}{0pt}{0.7ex plus .1ex minus .1ex}{0.3ex plus .1ex}
 
 \title{\vspace{-1.2em}\textbf{\large CS5013 Final Project Report} \\
-       \normalsize\textit{A Modular Java Framework for Multi-Tool 360$^\circ$ Panoramic Image Segmentation \& Quantitative Evaluation}\vspace{-0.4em}}
-\author{\normalsize\textbf{Rathan Balaji P R} (Roll No: CS26E009) \quad \textit{Dept. of Computer Science and Engineering, IIT Madras}\vspace{-0.8em}}
+       \normalsize\textit{GUI Framework for Multi-Tool Panoramic Image Segmentation}\vspace{-0.4em}}
+\author{\normalsize\textbf{Rathan Balaji P R} (Roll No: CS26E009, \texttt{cs26e009@smail.iitm.ac.in}) \\ \textit{Department of Computer Science and Engineering, IIT Madras}\vspace{-0.8em}}
 \date{}
 
 \begin{document}
@@ -33,10 +33,10 @@
 \vspace{-1.6em}
 
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
-  \item[Team Name:]         Omniseg-Java
+  \item[Team ID:]           solo
   \item[Repository:]        \url{https://github.com/Bubloo060706/panoramic-segmentation-gui.git}
   \item[Submission commit:] \texttt{0283aa7c8900a1decd57c8939623ad8d77eb9e0a} (date: \texttt{2026-11-08}).
-  \item[Docker image:]      \url{https://drive.google.com/drive/folders/1-CS5013-Omniseg-Docker-Artifact} (course staff view access).
+  \item[Primary Contact:]   Rathan Balaji P R (\texttt{cs26e009@smail.iitm.ac.in}, GitHub: \texttt{Rathan Balaji})
   \item[Tagline:]           \textit{A decoupled Java 21 desktop application orchestrating deep learning models for panoramic indoor segmentation with artifact-free 360$^\circ$ yaw rotation and boundary-aware metrics.}
 \end{description}
 
@@ -44,8 +44,8 @@
 \noindent\textbf{AI-authorship clause.}
 \textit{%
 We used AI tools to help draft parts of this report. The claims,
-numbers, commit references, stakeholder statements, and the Docker
-image are our own; the prose shaping may have been assisted. We can
+numbers, commit references, stakeholder statements, and repository
+artifacts are our own; the prose shaping may have been assisted. We can
 defend every sentence of this report, and every line of code in the
 submission commit, in the viva.%
 }
@@ -55,7 +55,7 @@ Equirectangular 360$^\circ$ indoor panoramas exhibit severe cylindrical geometri
 
 We engineered a modular Java 21 / JavaFX desktop application that isolates deep learning execution across an external OS subprocess boundary via the Gang-of-Four Adapter Pattern. The user loads equirectangular panoramas, executes up to five state-of-the-art neural segmentation models (OmniSAM, PanoFusion, OPS Baseline, SegFormer, SAM+CNN) side-by-side, inspects continuous 360$^\circ$ horizontal modulo yaw rotation without visual seam artifacts, and benchmarks predictions against Ind-PanSeg ground truth across mIoU, mAcc, Boundary IoU, Boundary F1, Pixel Accuracy, and Dice metrics.
 
-Stakeholder verdict: Accepted by course faculty Prof. Sukhendu Das during the demonstration on 2026-11-07; the system verified genuine inference forward passes across all five dedicated checkpoints (achieving 91.5\% mIoU on OmniSAM and 86.6\% on OPS on benchmark image45), passed all 39 automated JUnit 5 test suites, and satisfied all architectural separation constraints.
+Stakeholder verdict: Accepted by course stakeholder Prof. Sukhendu Das during the demonstration on 2026-11-07; the system verified genuine inference forward passes across all five dedicated checkpoints (achieving 91.5\% mIoU on OmniSAM and 86.6\% on OPS on benchmark image45), passed all 39 automated JUnit 5 test suites, and satisfied all architectural separation constraints.
 
 \section{Course concepts used in the project}
 \begin{itemize}[leftmargin=*,itemsep=1.5pt]
