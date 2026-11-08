@@ -2,8 +2,8 @@
 **Project Title:** A Modular Java Framework for Multi-Tool 360° Panoramic Image Segmentation & Quantitative Evaluation  
 **Course:** CS5013 – Programming with AI | **Semester:** Jan–May 2026 | **Dept. of Computer Science and Engineering, IIT Madras**  
 **Student:** Rathan Balaji P R (Roll No: CS26E009)  
-**Instructor / Faculty Evaluator:** Prof. Sukhendu Das, Professor, Dept. of CSE, IIT Madras  
-**Submission Commit:** `0283aa7c8900a1decd57c8939623ad8d77eb9e0a` (Date: 2026-11-08)  
+**Instructor & Stakeholder:** Prof. Sukhendu Das, Professor, Dept. of CSE, IIT Madras  
+**Submission Commit:** `f3664161f36dc164a2c53aebfd75f8f8dddc89da` (Date: 2026-11-08)  
 **Repository:** [https://github.com/Bubloo060706/panoramic-segmentation-gui.git](https://github.com/Bubloo060706/panoramic-segmentation-gui.git)  
 
 ---
@@ -215,3 +215,4 @@ All 39 automated tests pass cleanly with zero regressions:
 
 ## 8. Conclusion
 The CS5013 Panoramic Image Segmentation GUI Framework achieves a clean realization of course principles: strictly enforcing Gang-of-Four architectural patterns, maintaining a robust JVM process isolation boundary, supporting continuous 360° modulo rendering, and providing mathematical boundary evaluation across five genuine neural network checkpoints.
+

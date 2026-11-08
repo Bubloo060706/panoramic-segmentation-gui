@@ -35,7 +35,7 @@
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
   \item[Team Name:]         PanoVision
   \item[Repository:]        \url{https://github.com/Bubloo060706/panoramic-segmentation-gui.git}
-  \item[Submission commit:] \texttt{final-submission} (commit: \texttt{0e5fbee249f33c3937397b919d7cf7d510f27c84}, date: \texttt{2026-11-08}).
+  \item[Submission commit:] \texttt{final-submission} (commit: \texttt{f3664161f36dc164a2c53aebfd75f8f8dddc89da}, date: \texttt{2026-11-08}).
   \item[Docker image:]      \url{https://drive.google.com/file/d/1l6A5eqsx8xMkYwREb9w7SYdtVQPNu-O8/view?usp=sharing} (view access).
   \item[Tagline:]           \textit{A decoupled Java 21 desktop application orchestrating deep learning models for panoramic indoor segmentation with artifact-free 360$^\circ$ yaw rotation and boundary-aware metrics.}
 \end{description}
@@ -69,7 +69,7 @@ Stakeholder verdict: Accepted by course stakeholder Prof. Sukhendu Das during th
   File: \texttt{config/tools.json}. Commit: \texttt{0283aa7}.
   
   \item \textbf{Module 4 -- Debugging, Refactoring \& Mathematical Invariants.} Used 4-step prompt chaining (\textbf{Plan $\rightarrow$ Generate $\rightarrow$ Critique $\rightarrow$ Patch}) to implement seamless cyclic horizontal modulo yaw coordinate mapping: $\Delta x = \lfloor (\Delta\theta / 360^\circ) \times W \rfloor \pmod W$, completely eliminating $0^\circ/360^\circ$ seam split artifacts. \\
-  File: \texttt{src/main/java/.../PanoramaImageRenderer.java}. Commit: \texttt{684390c}.
+  File: \texttt{src/main/java/.../PanoramaImageRenderer.java}. Commit: \texttt{556a3df}.
   
   \item \textbf{Module 5 -- AI-Generated Test Cases \& Mutation Verification.} Systematically synthesized comprehensive JUnit 5 test suites using AI prompts targeting critical boundary edge conditions: 29MP resolution handling ($7808\times 3744$), non-2:1 aspect ratio warnings, zero-size image rejection, single-channel index mask decoding, and morphological erosion matrix bounds. \\
   File: \texttt{src/test/java/.../SegmentationMetricsTest.java}. Commit: \texttt{0283aa7}.
@@ -109,7 +109,7 @@ Stakeholder verdict: Accepted by course stakeholder Prof. Sukhendu Das during th
 \textbf{Stakeholder quote (one sentence, verbatim).}
 \begin{quote}
 \textit{``The multi-model side-by-side comparison with real checkpoints and yaw wrap-around visualization satisfies all project requirements cleanly.''}\\
-\vspace{-0.3em}\raggedleft -- Prof. Sukhendu Das, Faculty Evaluator, Dept. of CSE, IIT Madras, 2026-11-07.
+\vspace{-0.3em}\raggedleft -- Prof. Sukhendu Das, Stakeholder, Dept. of CSE, IIT Madras, 2026-11-07.
 \end{quote}
 \vspace{-0.4em}
 
