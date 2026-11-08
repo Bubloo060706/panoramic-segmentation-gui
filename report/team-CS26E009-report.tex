@@ -1,27 +1,36 @@
 \documentclass[10pt,a4paper]{article}
 
-\usepackage[margin=0.6in,top=0.5in,bottom=0.55in]{geometry}
+\usepackage[margin=0.6in,top=0.52in,bottom=0.55in]{geometry}
 \usepackage{setspace}
-\setlength{\parskip}{0.15em}
+\setlength{\parskip}{0.22em}
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{parskip}
 \usepackage{xcolor}
 \usepackage{calc}
 
-% Compact section headings
+% Enable clean URL and mono text wrapping everywhere
+\usepackage{url}
+\def\UrlBreaks{\do\/\do-\do.\do_\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z\do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue!75!black
+}
+
+% Compact section headings with elegant spacing
 \usepackage[compact]{titlesec}
-\titlespacing*{\section}{0pt}{0.6ex plus .1ex minus .1ex}{0.2ex plus .1ex}
+\titlespacing*{\section}{0pt}{0.7ex plus .1ex minus .1ex}{0.3ex plus .1ex}
 
 \title{\vspace{-1.2em}\textbf{\large CS5013 Final Project Report} \\
-       \normalsize\textit{A Modular Java Framework for Multi-Tool 360$^\circ$ Panoramic Image Segmentation \& Quantitative Evaluation}\vspace{-0.5em}}
+       \normalsize\textit{A Modular Java Framework for Multi-Tool 360$^\circ$ Panoramic Image Segmentation \& Quantitative Evaluation}\vspace{-0.4em}}
 \author{\normalsize\textbf{Rathan Balaji P R} (Roll No: CS26E009) \quad \textit{Dept. of Computer Science and Engineering, IIT Madras}\vspace{-0.8em}}
 \date{}
 
 \begin{document}
 \maketitle
 
-\vspace{-1.8em}
+\vspace{-1.6em}
 
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
   \item[Team Name:]         Omniseg-Java
@@ -31,7 +40,7 @@
   \item[Tagline:]           \textit{A decoupled Java 21 desktop application orchestrating deep learning models for panoramic indoor segmentation with artifact-free 360$^\circ$ yaw rotation and boundary-aware metrics.}
 \end{description}
 
-\vspace{0.1em}
+\vspace{0.15em}
 \noindent\textbf{AI-authorship clause.}
 \textit{%
 We used AI tools to help draft parts of this report. The claims,
@@ -49,24 +58,33 @@ We engineered a modular Java 21 / JavaFX desktop application that isolates deep 
 Stakeholder verdict: Accepted by course faculty Prof. Sukhendu Das during the demonstration on 2026-11-07; the system verified genuine inference forward passes across all five dedicated checkpoints (achieving 91.5\% mIoU on OmniSAM and 86.6\% on OPS on benchmark image45), passed all 39 automated JUnit 5 test suites, and satisfied all architectural separation constraints.
 
 \section{Course concepts used in the project}
-\begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{AI Mental Models \& Task Decomposition.} Decomposed a monolithic AI vision pipeline into decoupled architectural responsibilities (presentation, asynchronous coordination, adapter boundaries, canonical schema normalization, and morphological evaluation) rather than attempting unmaintainable single-shot AI code generation. File: \texttt{src/main/java/.../controller/AsyncSegmentationCoordinator.java}. Commit: \texttt{0283aa7}.
+\begin{itemize}[leftmargin=*,itemsep=1.5pt]
+  \item \textbf{AI Mental Models \& Task Decomposition.} Decomposed a monolithic vision pipeline into decoupled architectural responsibilities (presentation, asynchronous coordination, adapter boundaries, canonical schema normalization, and morphological evaluation) rather than attempting unmaintainable single-shot AI code generation. \\
+  File: \texttt{src/main/java/.../AsyncSegmentationCoordinator.java}. Commit: \texttt{0283aa7}.
   
-  \item \textbf{Prompt Engineering \& Capitalized Negative Constraints.} Formulated explicit capitalized negative constraints (\textit{``Do NOT embed Python or CUDA inside the JVM''}, \textit{``Do NOT drop unmapped metadata; store in unsupportedAttributes map''}) to enforce strict GoF design contracts and prevent silent data loss during LLM code generation. File: \texttt{src/main/java/.../adapter/ProcessModelAdapter.java}. Commit: \texttt{6740e1c}.
+  \item \textbf{Prompt Engineering \& Capitalized Negative Constraints.} Formulated explicit capitalized negative constraints (\textit{``Do NOT embed Python or CUDA inside the JVM''}, \textit{``Do NOT drop unmapped metadata; store in unsupportedAttributes map''}) to enforce strict GoF design contracts and prevent silent data loss during LLM code generation. \\
+  File: \texttt{src/main/java/.../adapter/ProcessModelAdapter.java}. Commit: \texttt{6740e1c}.
   
-  \item \textbf{AI-Assisted VCS \& Context Curation.} Enforced the \textit{``The WHY is Yours to Write''} discipline across atomic git commits, systematically grounding AI code assistants in our authoritative Design Document and the ICVGIP 2026 \textit{PanoFusion} benchmark specification via the Open Tab heuristic to eliminate hallucinated APIs. File: \texttt{config/tools.json}. Commit: \texttt{0283aa7}.
+  \item \textbf{AI-Assisted VCS \& Context Curation.} Enforced the \textit{``The WHY is Yours to Write''} discipline across atomic git commits, systematically grounding AI code assistants in our authoritative Design Document and the ICVGIP 2026 \textit{PanoFusion} benchmark specification via the Open Tab heuristic to eliminate hallucinated APIs. \\
+  File: \texttt{config/tools.json}. Commit: \texttt{0283aa7}.
   
-  \item \textbf{Debugging, Refactoring \& Mathematical Invariants.} Used 4-step prompt chaining (\textbf{Plan $\rightarrow$ Generate $\rightarrow$ Critique $\rightarrow$ Patch}) to implement seamless cyclic horizontal modulo yaw coordinate mapping: $\Delta x = \lfloor (\Delta\theta / 360^\circ) \times W \rfloor \pmod W$, completely eliminating $0^\circ/360^\circ$ seam split artifacts. File: \texttt{src/main/java/.../visualization/PanoramaImageRenderer.java}. Commit: \texttt{684390c}.
+  \item \textbf{Debugging, Refactoring \& Mathematical Invariants.} Used 4-step prompt chaining (\textbf{Plan $\rightarrow$ Generate $\rightarrow$ Critique $\rightarrow$ Patch}) to implement seamless cyclic horizontal modulo yaw coordinate mapping: $\Delta x = \lfloor (\Delta\theta / 360^\circ) \times W \rfloor \pmod W$, completely eliminating $0^\circ/360^\circ$ seam split artifacts. \\
+  File: \texttt{src/main/java/.../PanoramaImageRenderer.java}. Commit: \texttt{684390c}.
   
-  \item \textbf{AI-Generated Test Cases \& Mutation Verification.} Systematically synthesized comprehensive JUnit 5 test suites using AI prompts targeting critical boundary edge conditions: 29MP resolution handling ($7808\times 3744$), non-2:1 aspect ratio warnings, zero-size image rejection, single-channel index mask decoding, and morphological erosion matrix bounds. File: \texttt{src/test/java/.../comparison/SegmentationMetricsTest.java}. Commit: \texttt{0283aa7}.
+  \item \textbf{AI-Generated Test Cases \& Mutation Verification.} Systematically synthesized comprehensive JUnit 5 test suites using AI prompts targeting critical boundary edge conditions: 29MP resolution handling ($7808\times 3744$), non-2:1 aspect ratio warnings, zero-size image rejection, single-channel index mask decoding, and morphological erosion matrix bounds. \\
+  File: \texttt{src/test/java/.../SegmentationMetricsTest.java}. Commit: \texttt{0283aa7}.
   
-  \item \textbf{LLM Schema Interoperability \& Canonical APIs.} Designed an immutable JSON interchange schema between external model runners and Java, implementing strict schema validation that deserializes heterogeneous tensor masks into canonical \texttt{SegmentationResult} objects without loss of unmapped experimental metadata. File: \texttt{src/main/java/.../normalization/ResultNormalizer.java}. Commit: \texttt{10a5603}.
+  \item \textbf{LLM Schema Interoperability \& Canonical APIs.} Designed an immutable JSON interchange schema between external model runners and Java, implementing strict schema validation that deserializes heterogeneous tensor masks into canonical \texttt{SegmentationResult} objects without loss of unmapped experimental metadata. \\
+  File: \texttt{src/main/java/.../ResultNormalizer.java}. Commit: \texttt{10a5603}.
   
-  \item \textbf{Ethics, Model Provenance \& License Compliance.} Audited open-source vision backbones against permissible academic licenses (Apache 2.0 for SegFormer, MIT for OpenMMLab/SAM2), logged model origins and parameter sizes in transparent configuration metadata, and ensured Ind-PanSeg ground truth data privacy. File: \texttt{config/tools.json}. Commit: \texttt{0283aa7}.
+  \item \textbf{Ethics, Model Provenance \& License Compliance.} Audited open-source vision backbones against permissible academic licenses (Apache 2.0 for SegFormer, MIT for OpenMMLab/SAM2), logged model origins and parameter sizes in transparent configuration metadata, and ensured Ind-PanSeg ground truth data privacy. \\
+  File: \texttt{config/tools.json}. Commit: \texttt{0283aa7}.
   
-  \item \textbf{Vibe Coding Mitigation \& Formal Benchmark Evaluation.} Rejected unverified heuristic mocks in favor of genuine neural forward passes; implemented mathematical morphological boundary metrics (inner boundary erosion and $\tau$-tolerance dilation matching for Boundary IoU and Boundary F1) to prevent false evaluation claims. File: \texttt{src/main/java/.../comparison/MetricsCalculator.java}. Commit: \texttt{5969c24}.
+  \item \textbf{Vibe Coding Mitigation \& Formal Benchmark Evaluation.} Rejected unverified heuristic mocks in favor of genuine neural forward passes; implemented mathematical morphological boundary metrics (inner boundary erosion and $\tau$-tolerance dilation matching for Boundary IoU and Boundary F1) to prevent false evaluation claims. \\
+  File: \texttt{src/main/java/.../MetricsCalculator.java}. Commit: \texttt{5969c24}.
   
-  \item \textbf{Security, Economics \& Process Isolation.} Enforced secret and environment hygiene (dynamic path resolution via environment variables without hardcoded credentials); encapsulated memory-heavy PyTorch tensor allocations in external OS processes via \texttt{ProcessBuilder}, guaranteeing zero JVM heap exhaustion. File: \texttt{src/main/java/.../execution/ProcessExecutor.java}. Commit: \texttt{0283aa7}.
+  \item \textbf{Security, Economics \& Process Isolation.} Enforced secret and environment hygiene (dynamic path resolution via environment variables without hardcoded credentials); encapsulated memory-heavy PyTorch tensor allocations in external OS processes via \texttt{ProcessBuilder}, guaranteeing zero JVM heap exhaustion. \\
+  File: \texttt{src/main/java/.../execution/ProcessExecutor.java}. Commit: \texttt{0283aa7}.
 \end{itemize}
 
 \section{AI-usage summary}
@@ -81,21 +99,22 @@ Stakeholder verdict: Accepted by course faculty Prof. Sukhendu Das during the de
 \section{Deployment and stakeholder handoff}
 \textbf{Build and run.}
 \begin{verbatim}
-  git clone https://github.com/Bubloo060706/panoramic-segmentation-gui.git && cd panoramic-segmentation-gui
-  .\RunGUI.bat   # (or: .\mvnw.cmd javafx:run)
+  git clone https://github.com/Bubloo060706/panoramic-segmentation-gui.git
+  cd panoramic-segmentation-gui && .\RunGUI.bat   # (or: .\mvnw.cmd javafx:run)
 \end{verbatim}
-\vspace{-0.6em}
-\textbf{Where the artefact lives after the course.} Dept. of CSE GitHub repository (\url{https://github.com/Bubloo060706/panoramic-segmentation-gui.git}) and local laboratory research workstations.
+\vspace{-0.5em}
+\textbf{Where the artefact lives after the course.} Dept. of Computer Science and Engineering GitHub repository (\url{https://github.com/Bubloo060706/panoramic-segmentation-gui.git}) and local laboratory research workstations.
 
+\vspace{0.2em}
 \textbf{Stakeholder quote (one sentence, verbatim).}
 \begin{quote}
 \textit{``The multi-model side-by-side comparison with real checkpoints and yaw wrap-around visualization satisfies all project requirements cleanly.''}\\
 \vspace{-0.3em}\raggedleft -- Prof. Sukhendu Das, Faculty Evaluator, Dept. of CSE, IIT Madras, 2026-11-07.
 \end{quote}
-\vspace{-0.6em}
+\vspace{-0.5em}
 
 \section{Known limitations}
-\begin{itemize}[leftmargin=*,nosep]
+\begin{itemize}[leftmargin=*,itemsep=1.5pt]
   \item \textbf{CPU Latency on High-Resolution Sliding Windows:} Without a CUDA-capable GPU, sliding-window models (OmniSAM, OPS, PanoFusion) take 60--90 seconds per image on multi-core CPU due to intensive multi-head self-attention forward passes.
   \item \textbf{Spherical Projection Assumption:} Input imagery must conform to standard equirectangular ($360^\circ \times 180^\circ$, 2:1 aspect ratio) projection; perspective crops or distorted fisheye inputs trigger UI aspect warnings and exhibit coordinate distortion under horizontal yaw rotation.
   \item \textbf{Host Memory Pressure Under Full Parallelism:} Concurrently executing all five deep neural networks simultaneously requires $>12$~GB host RAM; lower-spec host environments must run models sequentially to avoid OS disk-paging.
