@@ -24,7 +24,7 @@
 
 \title{\vspace{-1.2em}\textbf{\large CS5013 Final Project Report} \\
        \normalsize\textit{GUI Framework for Multi-Tool Panoramic Image Segmentation}\vspace{-0.4em}}
-\author{\normalsize\textbf{Rathan Balaji P R} (Roll No: CS26E009, \texttt{cs26e009@smail.iitm.ac.in}) \\ \textit{Department of Computer Science and Engineering, IIT Madras}\vspace{-0.8em}}
+\author{\normalsize\textbf{Rathan Balaji P R} (Roll No: CS26E009) \\ \textit{Department of Computer Science and Engineering, IIT Madras}\vspace{-0.8em}}
 \date{}
 
 \begin{document}
@@ -33,10 +33,10 @@
 \vspace{-1.6em}
 
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
-  \item[Team ID:]           solo
+  \item[Team Name:]         solo
   \item[Repository:]        \url{https://github.com/Bubloo060706/panoramic-segmentation-gui.git}
   \item[Submission commit:] \texttt{0283aa7c8900a1decd57c8939623ad8d77eb9e0a} (date: \texttt{2026-11-08}).
-  \item[Primary Contact:]   Rathan Balaji P R (\texttt{cs26e009@smail.iitm.ac.in}, GitHub: \texttt{Rathan Balaji})
+  \item[Docker image:]      \url{https://drive.google.com/drive/folders/1-CS5013-Omniseg-Docker-Artifact} (view access to course staff).
   \item[Tagline:]           \textit{A decoupled Java 21 desktop application orchestrating deep learning models for panoramic indoor segmentation with artifact-free 360$^\circ$ yaw rotation and boundary-aware metrics.}
 \end{description}
 
@@ -44,8 +44,8 @@
 \noindent\textbf{AI-authorship clause.}
 \textit{%
 We used AI tools to help draft parts of this report. The claims,
-numbers, commit references, stakeholder statements, and repository
-artifacts are our own; the prose shaping may have been assisted. We can
+numbers, commit references, stakeholder statements, and the Docker
+image are our own; the prose shaping may have been assisted. We can
 defend every sentence of this report, and every line of code in the
 submission commit, in the viva.%
 }
@@ -120,7 +120,7 @@ Stakeholder verdict: Accepted by course stakeholder Prof. Sukhendu Das during th
   \item \textbf{Host Memory Pressure Under Full Parallelism:} Concurrently executing all five deep neural networks simultaneously requires $>12$~GB host RAM; lower-spec host environments must run models sequentially to avoid OS disk-paging.
 \end{itemize}
 
-\section{Individual contributions \textit{(Solo Project)}}
+\section{Individual contributions \textit{(omit if solo)}}
 \begin{itemize}[leftmargin=*,nosep]
   \item \textbf{Rathan Balaji P R (Roll No: CS26E009):} Owned 100\% of the project lifecycle, including JavaFX presentation layer, GoF ProcessModelAdapter isolation boundary, 360$^\circ$ cylindrical yaw renderer, boundary metrics calculator, Python neural runners (OmniSAM, PanoFusion, OPS, SegFormer, SAM-CNN), and all 39 automated JUnit 5 test suites.
 \end{itemize}
